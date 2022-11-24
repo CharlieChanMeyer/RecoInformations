@@ -44,11 +44,20 @@ class MainActivity : AppCompatActivity(), SensorEventListener,TextToSpeech.OnIni
     //List of information already found
     private var listInfoFound: MutableList<String> = mutableListOf()
 
-    // on below line we are creating a constant value
+    // Create a constant for the code speech
     private val REQUEST_CODE_SPEECH_INPUT = 1
 
     //on below we create a variable to stock the user response
-    private var userResponse: String = ""
+    private var listUserResponse: MutableList<String> = mutableListOf()
+
+    //Boolean to know what type of information was given to the user
+    // -1 : Reset
+    // 0 : Information found
+    // 1 : Question to the user about his taste
+    // 2 : Guide user to the destination
+    private var ttsCodeInfo: Int = -1
+
+    //      *********** CREATE AND INIT ***********
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -73,7 +82,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener,TextToSpeech.OnIni
 
             tts!!.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
                 override fun onDone(utteranceId: String) {
-                    waitForResponse()
+                    userInteraction()
                 }
                 override fun onError(utteranceId: String) {}
                 override fun onStart(utteranceId: String) {}
@@ -84,6 +93,8 @@ class MainActivity : AppCompatActivity(), SensorEventListener,TextToSpeech.OnIni
 
         outputTV = findViewById(R.id.idTVOutput)
     }
+
+    //      *********** PAUSE AND DESTROY ***********
 
     override fun onResume() {
         super.onResume()
@@ -122,64 +133,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener,TextToSpeech.OnIni
         super.onDestroy()
     }
 
-    override fun onSensorChanged(event: SensorEvent?) {
-
-        // Calling the TextView that we made in activity_main.xml
-        // by the id given to that TextView
-        var tv_stepsTaken = findViewById<TextView>(R.id.tv_stepsTaken)
-        var tv_infoView = findViewById<TextView>(R.id.tv_informationFound)
-        var info = mutableMapOf<Int,String>(20 to "Saizeria", 40 to "くら寿司")
-        var userResponse: Int = 0
-
-        if (running) {
-            totalSteps = event!!.values[0]
-
-            // Current steps are calculated by taking the difference of total steps
-            // and previous steps
-            val currentSteps = totalSteps.toInt() - previousTotalSteps.toInt()
-
-            if ((currentSteps > 20) and (currentSteps < 40) and (info[20] !in listInfoFound)) {
-                tv_infoView.text = ("レストランが見つかりました :\n".plus(info[20]))
-                listInfoFound.add(info[20].toString())
-                tts!!.speak((tv_infoView.text).toString().plus("\n行きたいですか？"), TextToSpeech.QUEUE_FLUSH, null,"")
-            } else if ((currentSteps > 40) and (info[40] !in listInfoFound)) {
-                listInfoFound.add(info[40].toString())
-                tv_infoView.text = ("レストランが見つかりました :\n".plus(info[40]))
-                tts!!.speak((tv_infoView.text).toString().plus("\n行きたいですか？"), TextToSpeech.QUEUE_FLUSH, null,"")
-            }
-
-            // It will show the current steps to the user
-            var d_cal = currentSteps * 0.20
-            tv_stepsTaken.text = d_cal.toString().plus(" m")
-        }
-    }
-
-    private fun resetSteps() {
-        var tv_stepsTaken = findViewById<TextView>(R.id.tv_stepsTaken)
-        var tv_infoView = findViewById<TextView>(R.id.tv_informationFound)
-        tv_stepsTaken.setOnClickListener {
-            // This will give a toast message if the user want to reset the steps
-            Toast.makeText(this, "ロングタップで距離のリセットが可能", Toast.LENGTH_SHORT).show()
-        }
-
-        tv_stepsTaken.setOnLongClickListener {
-
-            previousTotalSteps = totalSteps
-
-            // When the user will click long tap on the screen,
-            // the steps will be reset to 0
-            tv_stepsTaken.text = 0.toString().plus(" m")
-            //The information found will be reset.
-            tv_infoView.text = ("レストランは見つかりませんでした。")
-            outputTV.text = ("Output will appear here")
-            listInfoFound.clear()
-
-            // This will save the data
-            saveData()
-
-            true
-        }
-    }
+    //      *********** SAVE AND LOAD ***********
 
     private fun saveData() {
 
@@ -205,8 +159,88 @@ class MainActivity : AppCompatActivity(), SensorEventListener,TextToSpeech.OnIni
         previousTotalSteps = savedNumber
     }
 
-    private fun waitForResponse():Int {
-        var res: Int = 0
+    //      *********** RESET INTERACTION ***********
+
+    private fun resetSteps() {
+        var tv_stepsTaken = findViewById<TextView>(R.id.tv_stepsTaken)
+        var tv_infoView = findViewById<TextView>(R.id.tv_informationFound)
+        tv_stepsTaken.setOnClickListener {
+            // This will give a toast message if the user want to reset the steps
+            Toast.makeText(this, "ロングタップで距離のリセットが可能", Toast.LENGTH_SHORT).show()
+        }
+
+        tv_stepsTaken.setOnLongClickListener {
+            // When the user will click long tap on the screen,
+            // the steps will be reset to 0
+            tv_stepsTaken.text = 0.toString().plus(" m")
+            previousTotalSteps = totalSteps
+            //The information found will be reset.
+            tv_infoView.text = ("レストランは見つかりませんでした。")
+            outputTV.text = ("Output will appear here")
+            listInfoFound.clear()
+            ttsCodeInfo = -1
+            listUserResponse.clear()
+
+            // This will save the data
+            saveData()
+
+            true
+        }
+    }
+
+    //      *********** SENSOR INTERACTION ***********
+
+    override fun onSensorChanged(event: SensorEvent?) {
+
+        // Calling the TextView that we made in activity_main.xml
+        // by the id given to that TextView
+        var tv_stepsTaken = findViewById<TextView>(R.id.tv_stepsTaken)
+        var tv_infoView = findViewById<TextView>(R.id.tv_informationFound)
+        var info = mutableMapOf<Int,String>(20 to "Saizeria", 40 to "くら寿司")
+
+        if (running) {
+            totalSteps = event!!.values[0]
+
+            // Current steps are calculated by taking the difference of total steps
+            // and previous steps
+            val currentSteps = totalSteps.toInt() - previousTotalSteps.toInt()
+
+            // It will show the current travelled distance to the user
+            var dCal = currentSteps * 0.20
+            tv_stepsTaken.text = dCal.toString().plus(" m")
+
+            if ((currentSteps > 20) and (currentSteps < 40) and (info[20] !in listInfoFound)) {
+                tv_infoView.text = ("レストランが見つかりました :\n".plus(info[20]))
+                listInfoFound.add(info[20].toString())
+                ttsCodeInfo = 0
+                tts!!.speak((tv_infoView.text).toString().plus("\n行きたいですか？"), TextToSpeech.QUEUE_FLUSH, null,"")
+            } else if ((currentSteps > 40) and (info[40] !in listInfoFound)) {
+                listInfoFound.add(info[40].toString())
+                ttsCodeInfo = 0
+                tv_infoView.text = ("レストランが見つかりました :\n".plus(info[40]))
+                tts!!.speak((tv_infoView.text).toString().plus("\n行きたいですか？"), TextToSpeech.QUEUE_FLUSH, null,"")
+            }
+        }
+    }
+
+    //      *********** USER INTERACTION ***********
+
+    private fun userInteraction() {
+        var response = false
+
+        if (ttsCodeInfo == 0) {
+            while (!response) {
+                response = waitForResponse()
+            }
+
+            outputTV.text = listUserResponse.last()
+
+            ttsCodeInfo = -1
+        }
+    }
+
+    private fun waitForResponse():Boolean {
+        var res: Boolean = false
 
         // on below line we are calling speech recognizer intent.
         val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
@@ -234,6 +268,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener,TextToSpeech.OnIni
         // for result method and passing our result code.
         try {
             startActivityForResult(intent, REQUEST_CODE_SPEECH_INPUT)
+            res = true
         } catch (e: Exception) {
             // on below line we are displaying error message in toast
             Toast
@@ -243,9 +278,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener,TextToSpeech.OnIni
                 )
                 .show()
         }
-
-        res = 1
-
         return res
     }
 
@@ -257,22 +289,39 @@ class MainActivity : AppCompatActivity(), SensorEventListener,TextToSpeech.OnIni
         // code with our result code.
         if (requestCode == REQUEST_CODE_SPEECH_INPUT) {
             // on below line we are checking if result code is ok
-            if (resultCode == RESULT_OK && data != null) {
+            if (resultCode == AppCompatActivity.RESULT_OK && data != null) {
 
                 // in that case we are extracting the
                 // data from our array list
                 val res: ArrayList<String> =
                     data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS) as ArrayList<String>
 
-                // on below line we are setting data
-                // to our output text view.
-                outputTV.setText(
-                    Objects.requireNonNull(res)[0]
-                )
-                userResponse = Objects.requireNonNull(res)[0]
+                // put the response dans the listUserResponse
+                listUserResponse.add(Objects.requireNonNull(res)[0])
+                // Change the response user variable to true
+                outputTV.text = listUserResponse.last()
+
+                if ("はい" in listUserResponse.last()) {
+                    guideUser()
+                } else {
+                    anotherSearch()
+                }
             }
         }
     }
+
+    //      *********** RESPONSE ANALYSE ***********
+    private fun guideUser() {
+        ttsCodeInfo = 2
+        tts!!.speak("わかりました、ではこのレストランにご案内します。", TextToSpeech.QUEUE_FLUSH, null,"")
+    }
+
+    private fun anotherSearch() {
+        ttsCodeInfo = 3
+        tts!!.speak("わかりました、では別のレストランを探します。", TextToSpeech.QUEUE_FLUSH, null,"")
+    }
+
+    //      *********** USELESS ***********
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
         // We do not have to write anything in this function for this app

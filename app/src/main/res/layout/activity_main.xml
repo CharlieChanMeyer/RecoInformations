@@ -6,12 +6,6 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <!--Text View for the "Steps" displayed-->
-
-    <!--Text View for the step count-->
-
-    <!--Image View for the circle-->
-
     <ImageView
         android:id="@+id/imageView"
         android:layout_width="386dp"
@@ -81,5 +75,9 @@
         android:textSize="20sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Here are the existing layout elements, now wrapped in
+         a CoordinatorLayout -->
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
