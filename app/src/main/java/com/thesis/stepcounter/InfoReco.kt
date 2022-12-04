@@ -15,9 +15,8 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import java.util.*
-import com.thesis.stepcounter.CoreDatabase
 
-class MainActivity : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitListener {
+class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitListener {
     // Added SensorEventListener the MainActivity class
     // Implement all the members in the class MainActivity
     // after adding SensorEventListener
@@ -61,7 +60,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener,TextToSpeech.OnIni
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.info_reco)
         tts = TextToSpeech(this, this)
 
         loadData()
@@ -276,7 +275,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener,TextToSpeech.OnIni
             // on below line we are displaying error message in toast
             Toast
                 .makeText(
-                    this@MainActivity, " " + e.message,
+                    this@InfoReco, " " + e.message,
                     Toast.LENGTH_SHORT
                 )
                 .show()
