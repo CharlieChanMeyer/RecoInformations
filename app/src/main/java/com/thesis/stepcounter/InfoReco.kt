@@ -2,6 +2,7 @@ package com.thesis.stepcounter
 
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
@@ -11,6 +12,7 @@ import android.speech.RecognizerIntent
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.util.Log
+import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -22,6 +24,7 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
     // after adding SensorEventListener
 
     lateinit var outputTV: TextView
+    lateinit var menuButton: Button
 
     // we have assigned sensorManger to nullable
     private var sensorManager: SensorManager? = null
@@ -64,10 +67,17 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
         tts = TextToSpeech(this, this)
 
         loadData()
-        resetSteps()
 
         // Adding a context of SENSOR_SERVICE aas Sensor Manager
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+
+        //Define the menu button
+        menuButton = findViewById(R.id.irReturnMenuButton)
+        menuButton.setOnClickListener {
+            resetView()
+            var intent = Intent(this, Menu::class.java)
+            startActivity(intent)
+        }
     }
 
     override fun onInit(status: Int) {
@@ -162,32 +172,38 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
 
     //      *********** RESET INTERACTION ***********
 
-    private fun resetSteps() {
+    private fun reset() {
         var tv_stepsTaken = findViewById<TextView>(R.id.tv_stepsTaken)
-        var tv_infoView = findViewById<TextView>(R.id.tv_informationFound)
         tv_stepsTaken.setOnClickListener {
             // This will give a toast message if the user want to reset the steps
             Toast.makeText(this, "ロングタップで距離のリセットが可能", Toast.LENGTH_SHORT).show()
         }
 
         tv_stepsTaken.setOnLongClickListener {
-            // When the user will click long tap on the screen,
-            // the steps will be reset to 0
-            tv_stepsTaken.text = 0.toString().plus(" m")
-            previousTotalSteps = totalSteps
-            //The information found will be reset.
-            tv_infoView.text = ("レストランは見つかりませんでした。")
-            outputTV.text = ("Output will appear here")
-            listInfoFound.clear()
-            ttsCodeInfo = -1
-            listUserResponse.clear()
-            tts!!.speak("", TextToSpeech.QUEUE_FLUSH, null,"")
-
-            // This will save the data
-            saveData()
+            resetView()
 
             true
         }
+    }
+
+    private fun resetView() {
+        var tv_stepsTaken = findViewById<TextView>(R.id.tv_stepsTaken)
+        var tv_infoView = findViewById<TextView>(R.id.tv_informationFound)
+
+        // When the user will click long tap on the screen,
+        // the steps will be reset to 0
+        tv_stepsTaken.text = 0.toString().plus(" m")
+        previousTotalSteps = totalSteps
+        //The information found will be reset.
+        tv_infoView.text = ("レストランは見つかりませんでした。")
+        outputTV.text = ("Output will appear here")
+        listInfoFound.clear()
+        ttsCodeInfo = -1
+        listUserResponse.clear()
+        tts!!.speak("", TextToSpeech.QUEUE_FLUSH, null,"")
+
+        // This will save the data
+        saveData()
     }
 
     //      *********** SENSOR INTERACTION ***********
@@ -313,14 +329,29 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
     }
 
     //      *********** RESPONSE ANALYSE ***********
+    /** Announce to the user that it will guide him to the location of the restaurant */
     private fun guideUser() {
         ttsCodeInfo = 2
         tts!!.speak("わかりました、ではこのレストランにご案内します。", TextToSpeech.QUEUE_FLUSH, null,"")
     }
 
+    /** Announce to the user that it will search for another restaurant */
     private fun anotherSearch() {
         ttsCodeInfo = 3
         tts!!.speak("わかりました、では別のレストランを探します。", TextToSpeech.QUEUE_FLUSH, null,"")
+    }
+
+    //      *********** CAMERA ***********
+
+    /** Check if this device has a camera */
+    private fun checkCameraHardware(context: Context): Boolean {
+        if (context.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA)) {
+            // this device has a camera
+            return true
+        } else {
+            // no camera on this device
+            return false
+        }
     }
 
     //      *********** USELESS ***********
