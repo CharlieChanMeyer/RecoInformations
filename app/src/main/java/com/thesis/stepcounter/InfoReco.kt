@@ -66,18 +66,11 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
         setContentView(R.layout.info_reco)
         tts = TextToSpeech(this, this)
 
+        reset()
         loadData()
 
         // Adding a context of SENSOR_SERVICE aas Sensor Manager
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
-
-        //Define the menu button
-        menuButton = findViewById(R.id.irReturnMenuButton)
-        menuButton.setOnClickListener {
-            resetView()
-            var intent = Intent(this, Menu::class.java)
-            startActivity(intent)
-        }
     }
 
     override fun onInit(status: Int) {
@@ -101,6 +94,18 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
         }
 
         outputTV = findViewById(R.id.idTVOutput)
+
+        //Define the menu button
+        menuButton = findViewById(R.id.irReturnMenuButton)
+        menuButton.setOnClickListener {
+            resetView()
+            var intent = Intent(this, Menu::class.java)
+            startActivity(intent)
+        }
+        menuButton.setOnLongClickListener {
+            tts!!.speak("メニューに戻るにはここをクリック", TextToSpeech.QUEUE_FLUSH, null,"")
+            true
+        }
     }
 
     //      *********** PAUSE AND DESTROY ***********
@@ -177,6 +182,7 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
         tv_stepsTaken.setOnClickListener {
             // This will give a toast message if the user want to reset the steps
             Toast.makeText(this, "ロングタップで距離のリセットが可能", Toast.LENGTH_SHORT).show()
+            tts!!.speak("ロングタップで距離のリセットが可能", TextToSpeech.QUEUE_FLUSH, null,"")
         }
 
         tv_stepsTaken.setOnLongClickListener {
