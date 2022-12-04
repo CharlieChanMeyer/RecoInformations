@@ -15,7 +15,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import java.util.*
-
+import com.thesis.stepcounter.CoreDatabase
 
 class MainActivity : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitListener {
     // Added SensorEventListener the MainActivity class
@@ -73,7 +73,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener,TextToSpeech.OnIni
 
     override fun onInit(status: Int) {
         if (status == TextToSpeech.SUCCESS) {
-            // set US English as language for tts
+            // set JP Japan as language for tts
             val result = tts!!.setLanguage(Locale.JAPAN)
 
             if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
@@ -113,6 +113,8 @@ class MainActivity : AppCompatActivity(), SensorEventListener,TextToSpeech.OnIni
             // Rate suitable for the user interface
             sensorManager?.registerListener(this, stepSensor, SensorManager.SENSOR_DELAY_UI)
         }
+
+        tts = TextToSpeech(this, this)
     }
 
     override fun onStop() {
@@ -180,6 +182,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener,TextToSpeech.OnIni
             listInfoFound.clear()
             ttsCodeInfo = -1
             listUserResponse.clear()
+            tts!!.speak("", TextToSpeech.QUEUE_FLUSH, null,"")
 
             // This will save the data
             saveData()
