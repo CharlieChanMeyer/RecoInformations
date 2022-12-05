@@ -354,13 +354,7 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
 
     /** Check if this device has a camera */
     private fun checkCameraHardware(context: Context): Boolean {
-        if (context.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA)) {
-            // this device has a camera
-            return true
-        } else {
-            // no camera on this device
-            return false
-        }
+        return(context.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA))
     }
 
     //      *********** USELESS ***********
