@@ -18,6 +18,9 @@ class Menu : AppCompatActivity(),TextToSpeech.OnInitListener {
     lateinit var historyButton: Button
     lateinit var disconnectButton: Button
 
+    //get value of global var
+    private var globalVars = GlobalVariables()
+
     private var tts: TextToSpeech? = null
 
     // Create a constant for the code speech
@@ -39,7 +42,7 @@ class Menu : AppCompatActivity(),TextToSpeech.OnInitListener {
     override fun onInit(status: Int) {
         if (status == TextToSpeech.SUCCESS) {
             // set JP Japan as language for tts
-            val result = tts!!.setLanguage(Locale.JAPAN)
+            val result = tts!!.setLanguage(globalVars.globalLang)
 
             if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
                 Log.e("TTS","The Language specified is not supported!")
@@ -52,6 +55,11 @@ class Menu : AppCompatActivity(),TextToSpeech.OnInitListener {
             })
         } else {
             Log.e("TTS", "Initilization Failed!")
+        }
+
+        if (globalVars.globalErrorCode == 1) {
+            tts!!.speak("このページにアクセスするには、ログインする必要があります。", TextToSpeech.QUEUE_FLUSH, null,"")
+            globalVars.globalErrorCode = 0
         }
 
         //Link the infoReco button to his activity

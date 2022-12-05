@@ -26,6 +26,9 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
     lateinit var outputTV: TextView
     lateinit var menuButton: Button
 
+    //get value of global var
+    private var globalVars = GlobalVariables()
+
     // we have assigned sensorManger to nullable
     private var sensorManager: SensorManager? = null
 
@@ -76,7 +79,7 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
     override fun onInit(status: Int) {
         if (status == TextToSpeech.SUCCESS) {
             // set JP Japan as language for tts
-            val result = tts!!.setLanguage(Locale.JAPAN)
+            val result = tts!!.setLanguage(globalVars.globalLang)
 
             if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
                 Log.e("TTS","The Language specified is not supported!")

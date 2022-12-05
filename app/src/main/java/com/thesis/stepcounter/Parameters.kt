@@ -13,6 +13,9 @@ class Parameters : AppCompatActivity(),TextToSpeech.OnInitListener {
     //create the buttons in the class variable
     lateinit var menuButton: Button
 
+    //get value of global var
+    private var globalVars = GlobalVariables()
+
     private var tts: TextToSpeech? = null
 
     // Create a constant for the code speech
@@ -28,7 +31,7 @@ class Parameters : AppCompatActivity(),TextToSpeech.OnInitListener {
     override fun onInit(status: Int) {
         if (status == TextToSpeech.SUCCESS) {
             // set JP Japan as language for tts
-            val result = tts!!.setLanguage(Locale.JAPAN)
+            val result = tts!!.setLanguage(globalVars.globalLang)
 
             if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
                 Log.e("TTS", "The Language specified is not supported!")
