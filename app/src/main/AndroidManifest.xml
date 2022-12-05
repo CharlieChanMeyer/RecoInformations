@@ -45,6 +45,8 @@
                 android:value="" />
         </activity>
         <activity android:name=".InfoReco"></activity>
+        <activity android:name=".Parameters"></activity>
+        <activity android:name=".History"></activity>
     </application>
 
 </manifest>

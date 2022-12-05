@@ -67,21 +67,33 @@ class Menu : AppCompatActivity(),TextToSpeech.OnInitListener {
             true
         }
 
-        //Set help speech when user do a long click on the info reco button
+        //Link the parameters button to his activity
+        paramsButton.setOnClickListener {
+            val intent = Intent(this, Parameters::class.java)
+            startActivity(intent)
+        }
+
+        //Set help speech when user do a long click on the parameters button
         paramsButton.setOnLongClickListener {
             tts!!.speak("パラメータはこちら", TextToSpeech.QUEUE_FLUSH, null,"")
 
             true
         }
 
-        //Set help speech when user do a long click on the info reco button
+        //Link the infoReco button to his activity
+        historyButton.setOnClickListener {
+            val intent = Intent(this, History::class.java)
+            startActivity(intent)
+        }
+
+        //Set help speech when user do a long click on the history button
         historyButton.setOnLongClickListener {
             tts!!.speak("沿革はこちら", TextToSpeech.QUEUE_FLUSH, null,"")
 
             true
         }
 
-        //Set help speech when user do a long click on the info reco button
+        //Set help speech when user do a long click on the disconnect button
         disconnectButton.setOnLongClickListener {
             tts!!.speak("接続解除はこちら", TextToSpeech.QUEUE_FLUSH, null,"")
 
