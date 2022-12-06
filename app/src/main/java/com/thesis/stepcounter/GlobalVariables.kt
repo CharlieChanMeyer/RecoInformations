@@ -18,4 +18,7 @@ class GlobalVariables : Application() {
      * */
     var globalErrorCode = 0
 
+    /** restaurants' list*/
+    var globalRestaurantName = mutableListOf<String>("Saizeria", "くら寿司", "カレーハウスCoCo壱番屋", "Big Boy", "なか卯", "スシロー")
+
 }

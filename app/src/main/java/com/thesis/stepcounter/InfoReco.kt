@@ -46,14 +46,14 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
     // steps and it has also been given the value of 0 float
     private var previousTotalSteps = 0f
 
-    //List of information already found
-    private var listInfoFound: MutableList<String> = mutableListOf()
-
     // Create a constant for the code speech
     private val REQUEST_CODE_SPEECH_INPUT = 1
 
     //on below we create a variable to stock the user response
     private var listUserResponse: MutableList<String> = mutableListOf()
+
+    //Local list of restaurants names
+    private var listRestaurantName: MutableList<String> = mutableListOf()
 
     //Boolean to know what type of information was given to the user
     // -1 : Reset
@@ -95,9 +95,9 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
         } else {
             Log.e("TTS", "Initilization Failed!")
         }
-
         outputTV = findViewById(R.id.idTVOutput)
 
+        listRestaurantName = globalVars.globalRestaurantName.toMutableList()
         //Define the menu button
         menuButton = findViewById(R.id.irReturnMenuButton)
         menuButton.setOnClickListener {
@@ -109,6 +109,11 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
             tts!!.speak("メニューに戻るにはここをクリック", TextToSpeech.QUEUE_FLUSH, null,"")
             true
         }
+
+        /** A CODER ICI
+         *  INTERRACTION AVEC L'UTILISATEUR POUR NOTER LES ITEMS NECESSAIRES S'ILS N'ONT PAS DE NOTE
+         *  */
+
     }
 
     //      *********** PAUSE AND DESTROY ***********
@@ -206,9 +211,9 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
         //The information found will be reset.
         tv_infoView.text = ("レストランは見つかりませんでした。")
         outputTV.text = ("Output will appear here")
-        listInfoFound.clear()
         ttsCodeInfo = -1
         listUserResponse.clear()
+        listRestaurantName = globalVars.globalRestaurantName.toMutableList()
         tts!!.speak("", TextToSpeech.QUEUE_FLUSH, null,"")
 
         // This will save the data
@@ -223,7 +228,7 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
         // by the id given to that TextView
         var tv_stepsTaken = findViewById<TextView>(R.id.tv_stepsTaken)
         var tv_infoView = findViewById<TextView>(R.id.tv_informationFound)
-        var info = mutableMapOf<Int,String>(20 to "Saizeria", 40 to "くら寿司")
+        var restaurantName = ""
 
         if (running) {
             totalSteps = event!!.values[0]
@@ -236,15 +241,15 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
             var dCal = currentSteps * 0.20
             tv_stepsTaken.text = dCal.toString().plus(" m")
 
-            if ((currentSteps > 20) and (currentSteps < 40) and (info[20] !in listInfoFound)) {
-                tv_infoView.text = ("レストランが見つかりました :\n".plus(info[20]))
-                listInfoFound.add(info[20].toString())
+            if ((currentSteps % 20 == 0) and (listRestaurantName.size > 0 )) {
+                restaurantName = listRestaurantName.random()
+
+                //Ne marche pas
+                listRestaurantName.remove(restaurantName)
+
+
+                tv_infoView.text = ("レストランが見つかりました :\n".plus(restaurantName))
                 ttsCodeInfo = 0
-                tts!!.speak((tv_infoView.text).toString().plus("\n行きたいですか？"), TextToSpeech.QUEUE_FLUSH, null,"")
-            } else if ((currentSteps > 40) and (info[40] !in listInfoFound)) {
-                listInfoFound.add(info[40].toString())
-                ttsCodeInfo = 0
-                tv_infoView.text = ("レストランが見つかりました :\n".plus(info[40]))
                 tts!!.speak((tv_infoView.text).toString().plus("\n行きたいですか？"), TextToSpeech.QUEUE_FLUSH, null,"")
             }
         }
