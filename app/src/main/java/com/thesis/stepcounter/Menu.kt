@@ -8,7 +8,12 @@ import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.util.Log
 import android.widget.Button
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.android.volley.Response
+import com.android.volley.toolbox.StringRequest
+import com.android.volley.toolbox.Volley
+import java.nio.charset.Charset
 import java.util.*
 
 class Menu : AppCompatActivity(),TextToSpeech.OnInitListener {
@@ -40,6 +45,14 @@ class Menu : AppCompatActivity(),TextToSpeech.OnInitListener {
     }
 
     override fun onInit(status: Int) {
+        if (globalVars.globalUserID == -1) {
+            Toast.makeText(this, "Test", Toast.LENGTH_SHORT).show()
+
+//            val intent = Intent(this, Login::class.java)
+//            startActivity(intent)
+//            finish()
+        }
+
         if (status == TextToSpeech.SUCCESS) {
             // set JP Japan as language for tts
             val result = tts!!.setLanguage(globalVars.globalLang)
@@ -66,6 +79,7 @@ class Menu : AppCompatActivity(),TextToSpeech.OnInitListener {
         infoRecoButton.setOnClickListener {
             val intent = Intent(this, InfoReco::class.java)
             startActivity(intent)
+            finish()
         }
 
         //Set help speech when user do a long click on the info reco button
@@ -79,6 +93,7 @@ class Menu : AppCompatActivity(),TextToSpeech.OnInitListener {
         paramsButton.setOnClickListener {
             val intent = Intent(this, Parameters::class.java)
             startActivity(intent)
+            finish()
         }
 
         //Set help speech when user do a long click on the parameters button
@@ -92,6 +107,7 @@ class Menu : AppCompatActivity(),TextToSpeech.OnInitListener {
         historyButton.setOnClickListener {
             val intent = Intent(this, History::class.java)
             startActivity(intent)
+            finish()
         }
 
         //Set help speech when user do a long click on the history button
@@ -101,12 +117,52 @@ class Menu : AppCompatActivity(),TextToSpeech.OnInitListener {
             true
         }
 
+        disconnectButton.setOnClickListener {
+
+            Toast.makeText(this, globalVars.globalUserEmail, Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, globalVars.globalUserApiKEY, Toast.LENGTH_SHORT).show()
+            postVolley(globalVars.globalUserEmail,globalVars.globalUserApiKEY)
+        }
+
         //Set help speech when user do a long click on the disconnect button
         disconnectButton.setOnLongClickListener {
             tts!!.speak("接続解除はこちら", TextToSpeech.QUEUE_FLUSH, null,"")
 
             true
         }
+    }
+
+    private fun postVolley(email: String, apiKey: String) {
+        val queue = Volley.newRequestQueue(this)
+        var url = "https://charliemeyer.fr/thesis/logout.php"
+
+        val requestBody = "email=$email&apiKey=$apiKey"
+        val stringReq : StringRequest =
+            object : StringRequest(
+                Method.POST, url,
+                Response.Listener { response ->
+                    // response
+                    var strResp = response.toString()
+                    if (strResp == "success") {
+                        Toast.makeText(this, "Test2", Toast.LENGTH_SHORT).show()
+                        globalVars.globalUserID = -1
+                        var intent = Intent(this, Login::class.java)
+                        startActivity(intent)
+                        finish()
+                    } else {
+                        Toast.makeText(this, strResp, Toast.LENGTH_SHORT).show()
+                    }
+                },
+                Response.ErrorListener { error ->
+                    var strError = error.toString()
+                    Toast.makeText(this, strError, Toast.LENGTH_SHORT).show()
+                }
+            ){
+                override fun getBody(): ByteArray {
+                    return requestBody.toByteArray(Charset.defaultCharset())
+                }
+            }
+        queue.add(stringReq)
     }
 
 }

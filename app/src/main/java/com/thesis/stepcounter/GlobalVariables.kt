@@ -9,6 +9,10 @@ class GlobalVariables : Application() {
      *  else : User ID */
     var globalUserID = -1
 
+    var globalUserApiKEY = ""
+
+    var globalUserEmail = ""
+
     /** Language of the text-to-speech functionality */
     var globalLang: Locale = Locale.JAPAN
 

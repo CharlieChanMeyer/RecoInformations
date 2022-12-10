@@ -51,6 +51,7 @@ class Parameters : AppCompatActivity(),TextToSpeech.OnInitListener {
         menuButton.setOnClickListener {
             var intent = Intent(this, Menu::class.java)
             startActivity(intent)
+            finish()
         }
         menuButton.setOnLongClickListener {
             tts!!.speak("メニューに戻るにはここをクリック", TextToSpeech.QUEUE_FLUSH, null,"")
