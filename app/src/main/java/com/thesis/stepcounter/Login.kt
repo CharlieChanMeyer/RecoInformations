@@ -9,7 +9,6 @@ import android.widget.TextView
 import com.android.volley.Response
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
-import com.thesis.stepcounter.GlobalVariables
 import java.nio.charset.Charset
 
 class Login : AppCompatActivity() {
@@ -19,7 +18,7 @@ class Login : AppCompatActivity() {
     lateinit var errorText: TextView
 
     //get value of global var
-    private var globalVars = GlobalVariables()
+    private var globalVars = GlobalVariables.Companion
 
     lateinit var buttonLogin: Button
     lateinit var buttonRegister: Button
@@ -62,7 +61,9 @@ class Login : AppCompatActivity() {
                     if (arrayResponse[1] == "success") {
                         globalVars.globalUserID = arrayResponse[5].toInt()
                         globalVars.globalUserEmail = arrayResponse[9]
-                        globalVars.globalUserApiKEY = arrayResponse[11]
+                        var apiKey = arrayResponse[11].replace("}","")
+                        apiKey = apiKey.replace("\n","")
+                        globalVars.globalUserApiKEY = apiKey
                         var intent = Intent(this, Menu::class.java)
                         startActivity(intent)
                         finish()

@@ -27,7 +27,7 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
     lateinit var menuButton: Button
 
     //get value of global var
-    private var globalVars = GlobalVariables()
+    private var globalVars = GlobalVariables.Companion
 
     // we have assigned sensorManger to nullable
     private var sensorManager: SensorManager? = null

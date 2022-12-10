@@ -13,7 +13,7 @@ class History : AppCompatActivity(),TextToSpeech.OnInitListener {
     lateinit var menuButton: Button
 
     //get value of global var
-    private var globalVars = GlobalVariables()
+    private var globalVars = GlobalVariables.Companion
 
     private var tts: TextToSpeech? = null
 

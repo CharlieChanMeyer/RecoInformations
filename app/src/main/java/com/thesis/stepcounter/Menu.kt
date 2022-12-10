@@ -24,7 +24,7 @@ class Menu : AppCompatActivity(),TextToSpeech.OnInitListener {
     lateinit var disconnectButton: Button
 
     //get value of global var
-    private var globalVars = GlobalVariables()
+    private var globalVars = GlobalVariables.Companion
 
     private var tts: TextToSpeech? = null
 
@@ -46,11 +46,9 @@ class Menu : AppCompatActivity(),TextToSpeech.OnInitListener {
 
     override fun onInit(status: Int) {
         if (globalVars.globalUserID == -1) {
-            Toast.makeText(this, "Test", Toast.LENGTH_SHORT).show()
-
-//            val intent = Intent(this, Login::class.java)
-//            startActivity(intent)
-//            finish()
+            val intent = Intent(this, Login::class.java)
+            startActivity(intent)
+            finish()
         }
 
         if (status == TextToSpeech.SUCCESS) {
@@ -118,9 +116,6 @@ class Menu : AppCompatActivity(),TextToSpeech.OnInitListener {
         }
 
         disconnectButton.setOnClickListener {
-
-            Toast.makeText(this, globalVars.globalUserEmail, Toast.LENGTH_SHORT).show()
-            Toast.makeText(this, globalVars.globalUserApiKEY, Toast.LENGTH_SHORT).show()
             postVolley(globalVars.globalUserEmail,globalVars.globalUserApiKEY)
         }
 
@@ -144,8 +139,9 @@ class Menu : AppCompatActivity(),TextToSpeech.OnInitListener {
                     // response
                     var strResp = response.toString()
                     if (strResp == "success") {
-                        Toast.makeText(this, "Test2", Toast.LENGTH_SHORT).show()
                         globalVars.globalUserID = -1
+                        globalVars.globalUserEmail = ""
+                        globalVars.globalUserApiKEY = ""
                         var intent = Intent(this, Login::class.java)
                         startActivity(intent)
                         finish()
