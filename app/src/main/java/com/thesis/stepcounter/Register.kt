@@ -29,6 +29,9 @@ class Register : AppCompatActivity() {
     lateinit var textViewError: TextView
     lateinit var progressRegi: ProgressBar
 
+    //get value of global var
+    private var globalVars = GlobalVariables.Companion
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_register)
@@ -59,7 +62,7 @@ class Register : AppCompatActivity() {
 
     fun postVolley(name: String, email: String, password: String) {
         val queue = Volley.newRequestQueue(this)
-        var url = "https://charliemeyer.fr/thesis/register.php"
+        var url = globalVars.globalAPILink+"register.php"
 
         val requestBody = "name=$name&email=$email&password=$password"
         val stringReq : StringRequest =

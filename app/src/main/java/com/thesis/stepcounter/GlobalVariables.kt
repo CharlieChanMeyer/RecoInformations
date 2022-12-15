@@ -17,6 +17,9 @@ class GlobalVariables : Application() {
         /** Language of the text-to-speech functionality */
         var globalLang: Locale = Locale.JAPAN
 
+        /** Language of the application */
+        var globalLangAPP = "jp"
+
         /** Global error code
          * 0 : no error
          * 1 : not logged
@@ -25,6 +28,9 @@ class GlobalVariables : Application() {
 
         /** restaurants' list*/
         var globalRestaurantName = mutableListOf<String>("Saizeria", "くら寿司", "カレーハウスCoCo壱番屋", "Big Boy", "なか卯", "スシロー")
+
+        /** API link */
+        var globalAPILink = "http://ec2-15-168-13-179.ap-northeast-3.compute.amazonaws.com/thesis-app/"
     }
 
 }

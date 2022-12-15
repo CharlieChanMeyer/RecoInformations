@@ -129,7 +129,7 @@ class Menu : AppCompatActivity(),TextToSpeech.OnInitListener {
 
     private fun postVolley(email: String, apiKey: String) {
         val queue = Volley.newRequestQueue(this)
-        var url = "https://charliemeyer.fr/thesis/logout.php"
+        var url = globalVars.globalAPILink+"logout.php"
 
         val requestBody = "email=$email&apiKey=$apiKey"
         val stringReq : StringRequest =

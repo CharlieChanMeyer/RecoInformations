@@ -3,6 +3,7 @@ package com.thesis.stepcounter
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
@@ -49,14 +50,13 @@ class Login : AppCompatActivity() {
 
     private fun postVolley(email: String, password: String) {
         val queue = Volley.newRequestQueue(this)
-        var url = "https://charliemeyer.fr/thesis/login.php"
+        var url = globalVars.globalAPILink+"login.php"
 
         val requestBody = "email=$email&password=$password"
         val stringReq : StringRequest =
             object : StringRequest(
                 Method.POST, url,
                 Response.Listener { response ->
-                    // response
                     var arrayResponse = response.replace("\"","").split(",", ": ")
                     if (arrayResponse[1] == "success") {
                         globalVars.globalUserID = arrayResponse[5].toInt()
