@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -13,4 +14,35 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <Switch
+        android:id="@+id/langSwitch"
+        android:layout_width="225dp"
+        android:layout_height="47dp"
+        android:layout_marginTop="12dp"
+        android:text="Language: 日本語/English"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/paramReturnMenuButton" />
+
+    <Button
+        android:id="@+id/recoLikedButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:layout_marginEnd="60dp"
+        android:text="ON"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/langSwitch" />
+
+    <TextView
+        android:id="@+id/recoLike"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="36dp"
+        android:layout_marginEnd="44dp"
+        android:gravity="center"
+        android:text="Recommend only liked\nInformations"
+        app:layout_constraintEnd_toStartOf="@+id/recoLikedButton"
+        app:layout_constraintTop_toBottomOf="@+id/langSwitch" />
 </androidx.constraintlayout.widget.ConstraintLayout>

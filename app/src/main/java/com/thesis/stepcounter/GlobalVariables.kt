@@ -31,6 +31,35 @@ class GlobalVariables : Application() {
 
         /** API link */
         var globalAPILink = "http://ec2-15-168-13-179.ap-northeast-3.compute.amazonaws.com/thesis-app/"
+
+        /** Recommend only Liked informations */
+        var globalLiked = true
+
+        /** Eng Lang */
+        var globalText_eng = mapOf<String,String>(
+            "menu" to "MENU",
+            "info" to "INFORMATION RECOMMENDATION",
+            "para" to "PARAMETERS",
+            "history" to "HISTORY",
+            "disco" to "DISCONNECT",
+            "login" to "LOGIN",
+            "register" to "REGISTER",
+            "on" to "TURN OFF",
+            "off" to "TURN ON"
+        )
+
+        /** JP Lang */
+        var globalText_jp = mapOf<String,String>(
+            "menu" to "メニュー",
+            "info" to "情報提供のすすめ",
+            "para" to "パラメータ",
+            "history" to "沿革",
+            "disco" to "ディスコネクト",
+            "login" to "ログイン",
+            "register" to "レジスター",
+            "on" to "止める",
+            "off" to "点ける"
+        )
     }
 
 }

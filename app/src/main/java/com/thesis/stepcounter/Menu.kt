@@ -37,9 +37,29 @@ class Menu : AppCompatActivity(),TextToSpeech.OnInitListener {
 
         //Links the variable to their button
         infoRecoButton = findViewById(R.id.infoRecoButton)
+        if (globalVars.globalLangAPP == "jp") {
+            infoRecoButton.text = globalVars.globalText_jp["info"]
+        } else {
+            infoRecoButton.text = globalVars.globalText_eng["info"]
+        }
         paramsButton = findViewById(R.id.parametersButton)
+        if (globalVars.globalLangAPP == "jp") {
+            paramsButton.text = globalVars.globalText_jp["para"]
+        } else {
+            paramsButton.text = globalVars.globalText_eng["para"]
+        }
         historyButton = findViewById(R.id.historyButton)
+        if (globalVars.globalLangAPP == "jp") {
+            historyButton.text = globalVars.globalText_jp["history"]
+        } else {
+            historyButton.text = globalVars.globalText_eng["history"]
+        }
         disconnectButton = findViewById(R.id.disconnectButton)
+        if (globalVars.globalLangAPP == "jp") {
+            disconnectButton.text = globalVars.globalText_jp["disco"]
+        } else {
+            disconnectButton.text = globalVars.globalText_eng["disco"]
+        }
 
         tts = TextToSpeech(this, this)
     }

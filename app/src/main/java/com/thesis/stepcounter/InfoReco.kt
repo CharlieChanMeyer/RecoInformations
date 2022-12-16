@@ -100,6 +100,11 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
         listRestaurantName = globalVars.globalRestaurantName.toMutableList()
         //Define the menu button
         menuButton = findViewById(R.id.irReturnMenuButton)
+        if (globalVars.globalLangAPP == "jp") {
+            menuButton.text = globalVars.globalText_jp["menu"]
+        } else {
+            menuButton.text = globalVars.globalText_eng["menu"]
+        }
         menuButton.setOnClickListener {
             resetView()
             var intent = Intent(this, Menu::class.java)

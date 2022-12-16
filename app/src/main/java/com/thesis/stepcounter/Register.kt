@@ -40,7 +40,17 @@ class Register : AppCompatActivity() {
         textInputEditTextEmail = findViewById(R.id.RegiEmailInput)
         textInputEditTextPassword = findViewById(R.id.RegiPasswordInput)
         buttonSubmit = findViewById(R.id.regiRegisterButton)
+        if (globalVars.globalLangAPP == "jp") {
+            buttonSubmit.text = globalVars.globalText_jp["register"]
+        } else {
+            buttonSubmit.text = globalVars.globalText_eng["register"]
+        }
         buttonLogin = findViewById(R.id.regiLoginButton)
+        if (globalVars.globalLangAPP == "jp") {
+            buttonLogin.text = globalVars.globalText_jp["login"]
+        } else {
+            buttonLogin.text = globalVars.globalText_eng["login"]
+        }
         textViewError = findViewById(R.id.regiErrorLogin)
 
         buttonSubmit.setOnClickListener {

@@ -12,6 +12,7 @@ import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.view.marginTop
 import com.android.volley.Response
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
@@ -24,7 +25,10 @@ class History : AppCompatActivity(),TextToSpeech.OnInitListener {
     //create the history display in the class variable
     lateinit var tableDisplay: TableLayout
 
-    //get value of global var
+    //Last restaurant of the user
+    var last_restaurant = ""
+
+        //get value of global var
     private var globalVars = GlobalVariables.Companion
 
     private var tts: TextToSpeech? = null
@@ -60,10 +64,20 @@ class History : AppCompatActivity(),TextToSpeech.OnInitListener {
 
             //Define the display
             tableDisplay = findViewById(R.id.historyDisplayTable)
-            var tableToCreate = postVolley(globalVars.globalUserID)
+            postVolley(globalVars.globalUserID)
+            tableDisplay.setOnLongClickListener {
+
+                tts!!.speak(last_restaurant , TextToSpeech.QUEUE_FLUSH, null,"")
+                true
+            }
 
             //Define the menu button
             menuButton = findViewById(R.id.histoReturnMenuButton)
+            if (globalVars.globalLangAPP == "jp") {
+                menuButton.text = globalVars.globalText_jp["menu"]
+            } else {
+                menuButton.text = globalVars.globalText_eng["menu"]
+            }
             menuButton.setOnClickListener {
                 var intent = Intent(this, Menu::class.java)
                 startActivity(intent)
@@ -84,7 +98,7 @@ class History : AppCompatActivity(),TextToSpeech.OnInitListener {
         }
     }
 
-    fun postVolley(id: Int) {
+    private fun postVolley(id: Int) {
         val queue = Volley.newRequestQueue(this)
         var url = globalVars.globalAPILink+"history.php"
 
@@ -108,8 +122,10 @@ class History : AppCompatActivity(),TextToSpeech.OnInitListener {
                             var tmp = strResp[0].split("/")
                             if (globalVars.globalLangAPP == "jp") {
                                 tViewName.text = tmp[0]
+                                if (i ==0 ) last_restaurant = "最後のレストラン: "+tmp[0]
                             } else {
                                 tViewName.text = tmp[1]
+                                if (i ==0 ) last_restaurant = "Last restaurant: "+tmp[1]
                             }
                             tViewName.setTextColor(Color.parseColor("#000000"))
                             tViewName.gravity = Gravity.CENTER;
@@ -118,6 +134,13 @@ class History : AppCompatActivity(),TextToSpeech.OnInitListener {
                             strResp.removeAt(0)
                             strResp.removeAt(0)
                             tViewDate.text = strResp[0]
+                            if (i ==0) {
+                                last_restaurant += if (globalVars.globalLangAPP == "jp") {
+                                    ".日付: "+strResp[0]
+                                } else {
+                                    ".Date: "+strResp[0]
+                                }
+                            }
                             tViewDate.background = resources.getDrawable(R.drawable.border)
                             tViewDate.setTextColor(Color.parseColor("#000000"))
                             tViewDate.gravity = Gravity.CENTER;

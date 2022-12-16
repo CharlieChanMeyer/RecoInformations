@@ -34,7 +34,17 @@ class Login : AppCompatActivity() {
         errorText = findViewById(R.id.errorLogin)
 
         buttonLogin = findViewById(R.id.loginButton)
+        if (globalVars.globalLangAPP == "jp") {
+            buttonLogin.text = globalVars.globalText_jp["login"]
+        } else {
+            buttonLogin.text = globalVars.globalText_eng["login"]
+        }
         buttonRegister = findViewById(R.id.registerButton)
+        if (globalVars.globalLangAPP == "jp") {
+            buttonRegister.text = globalVars.globalText_jp["register"]
+        } else {
+            buttonRegister.text = globalVars.globalText_eng["register"]
+        }
 
         buttonLogin.setOnClickListener {
 
