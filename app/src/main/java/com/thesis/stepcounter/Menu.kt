@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.hardware.SensorManager
 import android.os.Bundle
+import android.speech.RecognizerIntent
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.util.Log
@@ -27,6 +28,10 @@ class Menu : AppCompatActivity(),TextToSpeech.OnInitListener {
     private var globalVars = GlobalVariables.Companion
 
     private var tts: TextToSpeech? = null
+
+    private var waitingResponse = false
+
+    private var idFood = -1
 
     // Create a constant for the code speech
     private val REQUEST_CODE_SPEECH_INPUT = 1
@@ -80,7 +85,11 @@ class Menu : AppCompatActivity(),TextToSpeech.OnInitListener {
             }
 
             tts!!.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
-                override fun onDone(utteranceId: String) {}
+                override fun onDone(utteranceId: String) {
+                    if (waitingResponse) {
+                        waitForResponse()
+                    }
+                }
                 override fun onError(utteranceId: String) {}
                 override fun onStart(utteranceId: String) {}
             })
@@ -88,16 +97,11 @@ class Menu : AppCompatActivity(),TextToSpeech.OnInitListener {
             Log.e("TTS", "Initilization Failed!")
         }
 
+        getRestaurants()
+
         if (globalVars.globalErrorCode == 1) {
             tts!!.speak("このページにアクセスするには、ログインする必要があります。", TextToSpeech.QUEUE_FLUSH, null,"")
             globalVars.globalErrorCode = 0
-        }
-
-        //Link the infoReco button to his activity
-        infoRecoButton.setOnClickListener {
-            val intent = Intent(this, InfoReco::class.java)
-            startActivity(intent)
-            finish()
         }
 
         //Set help speech when user do a long click on the info reco button
@@ -145,6 +149,8 @@ class Menu : AppCompatActivity(),TextToSpeech.OnInitListener {
 
             true
         }
+
+        verifyLikedFood()
     }
 
     private fun postVolley(email: String, apiKey: String) {
@@ -181,4 +187,200 @@ class Menu : AppCompatActivity(),TextToSpeech.OnInitListener {
         queue.add(stringReq)
     }
 
+    private fun getRestaurants() {
+        val queue = Volley.newRequestQueue(this)
+        var url = globalVars.globalAPILink+"getRestaurants.php"
+
+        val requestBody = ""
+        val stringReq : StringRequest =
+            object : StringRequest(
+                Method.POST, url,
+                Response.Listener { response ->
+                    // response
+                    var strResp = response.toString().split(",")
+                    for (restaurant in strResp) {
+                        if (restaurant !in globalVars.globalRestaurantName) {
+                            globalVars.globalRestaurantName.add(restaurant)
+                        }
+                    }
+                },
+                Response.ErrorListener { error ->
+                    var strError = error.toString()
+                    Toast.makeText(this, strError, Toast.LENGTH_SHORT).show()
+                }
+            ){
+                override fun getBody(): ByteArray {
+                    return requestBody.toByteArray(Charset.defaultCharset())
+                }
+            }
+        queue.add(stringReq)
+    }
+
+    private fun verifyLikedFood() {
+        val queue = Volley.newRequestQueue(this)
+        var url = globalVars.globalAPILink+"verifyLikedFood.php"
+        var userID = globalVars.globalUserID
+        val requestBody = "userID=$userID"
+        val stringReq : StringRequest =
+            object : StringRequest(
+                Method.POST, url,
+                Response.Listener { response ->
+                    // response
+                    var food = response.toString()
+                    if (food != "") {
+                        var split_tmp = food.split(":")
+                        idFood = split_tmp[0].toInt()
+                        var food_lg = split_tmp[1].split("|")
+                        waitingResponse = true
+                        if (globalVars.globalLangAPP == "jp") {
+                            tts!!.speak(
+                                food_lg[0] + "は未評価です。1から9までの評価を教えてください。",
+                                TextToSpeech.QUEUE_FLUSH,
+                                null,
+                                ""
+                            )
+                        } else {
+                            tts!!.speak(
+                                food_lg[1] + "is not rated. Please tell me a rating from 1 to 9.",
+                                TextToSpeech.QUEUE_FLUSH,
+                                null,
+                                ""
+                            )
+                        }
+
+                    } else {
+                        //Link the infoReco button to his activity
+                        infoRecoButton.setOnClickListener {
+                            val intent = Intent(this, InfoReco::class.java)
+                            startActivity(intent)
+                            finish()
+                        }
+                    }
+                },
+                Response.ErrorListener { error ->
+                    var strError = error.toString()
+                    Log.e("Error",strError)
+                    Toast.makeText(this, strError, Toast.LENGTH_SHORT).show()
+                }
+            ){
+                override fun getBody(): ByteArray {
+                    return requestBody.toByteArray(Charset.defaultCharset())
+                }
+            }
+        queue.add(stringReq)
+    }
+
+    private fun waitForResponse():Boolean {
+        var res: Boolean = false
+
+        // on below line we are calling speech recognizer intent.
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+
+        // on below line we are passing language model
+        // and model free form in our intent
+        intent.putExtra(
+            RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+            RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+        )
+
+        // on below line we are passing our
+        // language as a default language.
+        intent.putExtra(
+            RecognizerIntent.EXTRA_LANGUAGE,
+            "ja"
+        )
+
+        // on below line we are specifying a prompt
+        // message as speak to text on below line.
+        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "音声テキスト化")
+
+        // on below line we are specifying a try catch block.
+        // in this block we are calling a start activity
+        // for result method and passing our result code.
+        try {
+            startActivityForResult(intent, REQUEST_CODE_SPEECH_INPUT)
+            res = true
+        } catch (e: Exception) {
+            // on below line we are displaying error message in toast
+            Toast
+                .makeText(
+                    this@Menu, " " + e.message,
+                    Toast.LENGTH_SHORT
+                )
+                .show()
+        }
+        return res
+    }
+
+    // on below line we are calling on activity result method.
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        // in this method we are checking request
+        // code with our result code.
+        if (requestCode == REQUEST_CODE_SPEECH_INPUT) {
+            // on below line we are checking if result code is ok
+            if (resultCode == AppCompatActivity.RESULT_OK && data != null) {
+
+                // in that case we are extracting the
+                // data from our array list
+                val res: ArrayList<String> =
+                    data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS) as ArrayList<String>
+
+                var resp = Objects.requireNonNull(res)[0]
+
+                // List of accepted response
+                var acceptedResp = arrayListOf<String>("1","2","3","4","5","6","7","8","9")
+
+                if (resp in acceptedResp) {
+                    Toast.makeText(this, resp, Toast.LENGTH_SHORT).show()
+                    waitingResponse = false
+                    pushRating(resp)
+                } else {
+                    if (globalVars.globalLangAPP == "jp") {
+                        tts!!.speak(
+                            "1から9までの評価を教えてください。",
+                            TextToSpeech.QUEUE_FLUSH,
+                            null,
+                            ""
+                        )
+                    } else {
+                        tts!!.speak(
+                            "Please tell me a rating from 1 to 9.",
+                            TextToSpeech.QUEUE_FLUSH,
+                            null,
+                            ""
+                        )
+                    }
+                }
+
+            }
+        }
+    }
+
+    private fun pushRating(rating: String) {
+        val queue = Volley.newRequestQueue(this)
+        var url = globalVars.globalAPILink+"pushRatingFood.php"
+        var userID = globalVars.globalUserID
+        val requestBody = "userID=$userID&foodID=$idFood&rating=$rating"
+        val stringReq : StringRequest =
+            object : StringRequest(
+                Method.POST, url,
+                Response.Listener { response ->
+                    // response
+                    if (response.toString() == "Success") {
+                        verifyLikedFood()
+                    }
+                },
+                Response.ErrorListener { error ->
+                    var strError = error.toString()
+                    Toast.makeText(this, strError, Toast.LENGTH_SHORT).show()
+                }
+            ){
+                override fun getBody(): ByteArray {
+                    return requestBody.toByteArray(Charset.defaultCharset())
+                }
+            }
+        queue.add(stringReq)
+    }
 }

@@ -27,12 +27,11 @@ class GlobalVariables : Application() {
         var globalErrorCode = 0
 
         /** restaurants' list*/
-        var globalRestaurantName = mutableListOf<String>("Saizeria", "くら寿司", "カレーハウスCoCo壱番屋", "Big Boy", "なか卯", "スシロー")
-
+        var globalRestaurantName = mutableListOf<String>("なか卯|Nakau","くら寿司|Kurasushi","マクドナルド|McDonald")
         /** API link */
         var globalAPILink = "http://ec2-15-168-13-179.ap-northeast-3.compute.amazonaws.com/thesis-app/"
 
-        /** Recommend only Liked informations */
+        /** Recommend only Liked information */
         var globalLiked = true
 
         /** Eng Lang */

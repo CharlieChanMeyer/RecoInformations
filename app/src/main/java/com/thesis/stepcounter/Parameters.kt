@@ -72,8 +72,10 @@ class Parameters : AppCompatActivity(),TextToSpeech.OnInitListener {
         switchButton.setOnClickListener {
             if (globalVars.globalLangAPP == "jp") {
                 globalVars.globalLangAPP = "eng"
+                globalVars.globalLang = Locale.ENGLISH
             } else {
                 globalVars.globalLangAPP = "jp"
+                globalVars.globalLang = Locale.JAPAN
             }
             val intent = Intent(this, Parameters::class.java)
             startActivity(intent)
