@@ -234,14 +234,14 @@ class Menu : AppCompatActivity(),TextToSpeech.OnInitListener {
                         waitingResponse = true
                         if (globalVars.globalLangAPP == "jp") {
                             tts!!.speak(
-                                food_lg[0] + "は未評価です。1から9までの評価を教えてください。",
+                                food_lg[0] + "は未評価です。あなたはそれを大好き、好き、普通、嫌い、大嫌いか？",
                                 TextToSpeech.QUEUE_FLUSH,
                                 null,
                                 ""
                             )
                         } else {
                             tts!!.speak(
-                                food_lg[1] + "is not rated. Please tell me a rating from 1 to 9.",
+                                food_lg[1] + "is unrated. Do you love it, like it, normal, dislike it or hate it?",
                                 TextToSpeech.QUEUE_FLUSH,
                                 null,
                                 ""
@@ -330,12 +330,22 @@ class Menu : AppCompatActivity(),TextToSpeech.OnInitListener {
                 var resp = Objects.requireNonNull(res)[0]
 
                 // List of accepted response
-                var acceptedResp = arrayListOf<String>("1","2","3","4","5","6","7","8","9")
+                var acceptedResp = arrayListOf<String>("大嫌い","嫌い","普通","好き","大好き","hate","dislike","normal","like","love")
 
                 if (resp in acceptedResp) {
                     Toast.makeText(this, resp, Toast.LENGTH_SHORT).show()
                     waitingResponse = false
-                    pushRating(resp)
+                    var rating = 1
+                    if ((resp == "嫌い") or (resp == "dislike")) {
+                        rating = 3
+                    } else if ((resp == "普通") or (resp == "normal")) {
+                        rating = 5
+                    } else if ((resp == "好き") or (resp == "like")) {
+                        rating = 7
+                    } else if ((resp == "大好き") or (resp == "love")) {
+                        rating = 9
+                    }
+                    pushRating(rating)
                 } else {
                     if (globalVars.globalLangAPP == "jp") {
                         tts!!.speak(
@@ -358,7 +368,7 @@ class Menu : AppCompatActivity(),TextToSpeech.OnInitListener {
         }
     }
 
-    private fun pushRating(rating: String) {
+    private fun pushRating(rating: Int) {
         val queue = Volley.newRequestQueue(this)
         var url = globalVars.globalAPILink+"pushRatingFood.php"
         var userID = globalVars.globalUserID

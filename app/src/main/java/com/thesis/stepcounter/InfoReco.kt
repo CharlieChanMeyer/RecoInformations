@@ -275,9 +275,9 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
                 if (globalVars.globalLiked) {
                     verifyLikedRestaurant(restaurantName)
                 } else {
-                    tv_infoView.text = ("レストランが見つかりました :\n".plus(restaurantName))
+                    tv_infoView.text = ("お客様の好みに合わせて、気に入っていただけるお店が見つかったと思います。そのお店の名前は ".plus(restaurantName))
                     ttsCodeInfo = 0
-                    tts!!.speak((tv_infoView.text).toString().plus("\n行きたいですか？"), TextToSpeech.QUEUE_FLUSH, null,"")
+                    tts!!.speak((tv_infoView.text).toString().plus("\nこの提案についてどう思いますか？好きですか？嫌いですか？"), TextToSpeech.QUEUE_FLUSH, null,"")
                 }
             }
         }
@@ -360,12 +360,8 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
                 listUserResponse.add(Objects.requireNonNull(res)[0])
                 // Change the response user variable to true
                 outputTV.text = listUserResponse.last()
-
-                if ("はい" in listUserResponse.last()) {
-                    guideUser()
-                } else {
-                    anotherSearch()
-                }
+                ttsCodeInfo = -1
+                tts!!.speak("おすすめのレストランが更新されました", TextToSpeech.QUEUE_FLUSH, null,"")
             }
         }
     }
@@ -407,25 +403,15 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
                         var dbData = arrayResponse[5].replace("}","")
                         dbData = dbData.replace("\n","")
                         if (dbData!= "dislike") {
-                            tv_infoView.text = ("レストランが見つかりました :\n".plus(restaurantName))
+                            tv_infoView.text = ("お客様の好みに合わせて、気に入っていただけるお店が見つかったと思います。そのお店の名前は ".plus(restaurantName))
                             ttsCodeInfo = 0
-                            tts!!.speak(
-                                (tv_infoView.text).toString().plus("\n行きたいですか？"),
-                                TextToSpeech.QUEUE_FLUSH,
-                                null,
-                                ""
-                            )
+                            tts!!.speak((tv_infoView.text).toString().plus("\nこの提案についてどう思いますか？好きですか？嫌いですか？"), TextToSpeech.QUEUE_FLUSH, null,"")
                         }
                     } else {
                         if ("The user didn't rated this restaurant" in arrayResponse[3]) {
-                            tv_infoView.text = ("レストランが見つかりました :\n".plus(restaurantName))
+                            tv_infoView.text = ("お客様の好みに合わせて、気に入っていただけるお店が見つかったと思います。そのお店の名前は ".plus(restaurantName))
                             ttsCodeInfo = 0
-                            tts!!.speak(
-                                (tv_infoView.text).toString().plus("\n行きたいですか？"),
-                                TextToSpeech.QUEUE_FLUSH,
-                                null,
-                                ""
-                            )
+                            tts!!.speak((tv_infoView.text).toString().plus("\nこの提案についてどう思いますか？好きですか？嫌いですか？"), TextToSpeech.QUEUE_FLUSH, null,"")
                         } else {
                             Toast.makeText(this, arrayResponse[3], Toast.LENGTH_SHORT).show()
                         }
