@@ -67,7 +67,7 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
     //Local list of restaurants names
     private var listRestaurantName: MutableList<String> = mutableListOf()
 
-    private var localeList: MutableList<Locale> = mutableListOf()
+    private var suggestionName = ""
 
 
     //Boolean to know what type of information was given to the user
@@ -100,6 +100,7 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
             if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
                 Log.e("TTS","The Language specified is not supported!")
             }
+            tts!!.setSpeechRate(1.5f)
 
             tts!!.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
                 override fun onDone(utteranceId: String) {
@@ -132,10 +133,6 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
             tts!!.speak("メニューに戻るにはここをクリック", TextToSpeech.QUEUE_FLUSH, null,"")
             true
         }
-
-        /** A CODER ICI
-         *  INTERRACTION AVEC L'UTILISATEUR POUR NOTER LES ITEMS NECESSAIRES S'ILS N'ONT PAS DE NOTE
-         *  */
 
     }
 
@@ -262,20 +259,21 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
             val currentSteps = totalSteps.toInt() - previousTotalSteps.toInt()
 
             // It will show the current travelled distance to the user
-            var dCal = currentSteps * 0.20
+            var dCal = currentSteps * 0.10
             tv_stepsTaken.text = dCal.toString().plus(" m")
 
             if ((currentSteps % 20 == 0) and (listRestaurantName.size > 0 ) and (!communicationServer)) {
                 restaurantName = listRestaurantName.random()
                 var tmpRName = restaurantName.split("|")
-                restaurantName = if (globalVars.globalLangAPP == "jp") tmpRName[0] else tmpRName[1]
-                //Ne marche pas
-                listRestaurantName.remove(restaurantName)
-                Log.e("Restaurant",restaurantName)
+                suggestionName = if (globalVars.globalLangAPP == "jp") tmpRName[0] else tmpRName[1]
+                var index = listRestaurantName.indexOf(restaurantName)
+                Log.e("Size",listRestaurantName.size.toString())
+                listRestaurantName.removeAt(index)
+                Log.e("Size",listRestaurantName.size.toString())
                 if (globalVars.globalLiked) {
-                    verifyLikedRestaurant(restaurantName)
+                    verifyLikedRestaurant()
                 } else {
-                    tv_infoView.text = ("お客様の好みに合わせて、気に入っていただけるお店が見つかったと思います。そのお店の名前は ".plus(restaurantName).plus("。"))
+                    tv_infoView.text = ("お客様の好みに合わせて、気に入っていただけるお店が見つかったと思います。そのお店の名前は ".plus(suggestionName).plus("。"))
                     ttsCodeInfo = 0
                     tts!!.speak((tv_infoView.text).toString().plus("\nこの提案についてどう思いますか？好きですか？嫌いですか？"), TextToSpeech.QUEUE_FLUSH, null,"")
                 }
@@ -360,8 +358,9 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
                 listUserResponse.add(Objects.requireNonNull(res)[0])
                 // Change the response user variable to true
                 outputTV.text = listUserResponse.last()
-                ttsCodeInfo = -1
-                tts!!.speak("おすすめのレストランが更新されました", TextToSpeech.QUEUE_FLUSH, null,"")
+                var update = -1
+                if (listUserResponse.last().contains("好き", ignoreCase = true)) update = 1
+                updatePreference(update)
             }
         }
     }
@@ -388,12 +387,12 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
 
     //      *********** DATABASE INTERACTION ***********
 
-    private fun verifyLikedRestaurant(restaurantName: String) {
+    private fun verifyLikedRestaurant() {
         communicationServer = true
         val queue = Volley.newRequestQueue(this)
         var url = globalVars.globalAPILink+"verifyLikedRestaurant.php"
         var userID = globalVars.globalUserID
-        val requestBody = "restaurant_name=$restaurantName&userID=$userID"
+        val requestBody = "restaurant_name=$suggestionName&userID=$userID"
         val stringReq : StringRequest =
             object : StringRequest(
                 Method.POST, url,
@@ -403,18 +402,50 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
                         var dbData = arrayResponse[5].replace("}","")
                         dbData = dbData.replace("\n","")
                         if (dbData!= "dislike") {
-                            tv_infoView.text = ("お客様の好みに合わせて、気に入っていただけるお店が見つかったと思います。そのお店の名前は ".plus(restaurantName).plus("。"))
+                            tv_infoView.text = ("お客様の好みに合わせて、気に入っていただけるお店が見つかったと思います。そのお店の名前は ".plus(suggestionName).plus("。"))
                             ttsCodeInfo = 0
                             tts!!.speak((tv_infoView.text).toString().plus("\nこの提案についてどう思いますか？好きですか？嫌いですか？"), TextToSpeech.QUEUE_FLUSH, null,"")
                         }
                     } else {
                         if ("The user didn't rated this restaurant" in arrayResponse[3]) {
-                            tv_infoView.text = ("お客様の好みに合わせて、気に入っていただけるお店が見つかったと思います。そのお店の名前は ".plus(restaurantName).plus("。"))
+                            tv_infoView.text = ("お客様の好みに合わせて、気に入っていただけるお店が見つかったと思います。そのお店の名前は ".plus(suggestionName).plus("。"))
                             ttsCodeInfo = 0
                             tts!!.speak((tv_infoView.text).toString().plus("\nこの提案についてどう思いますか？好きですか？嫌いですか？"), TextToSpeech.QUEUE_FLUSH, null,"")
                         } else {
                             Toast.makeText(this, arrayResponse[3], Toast.LENGTH_SHORT).show()
                         }
+                    }
+                    communicationServer = false
+                },
+                Response.ErrorListener { error ->
+                    var strError = error.toString()
+                    Toast.makeText(this, strError, Toast.LENGTH_SHORT).show()
+                    communicationServer = false
+                }
+            ){
+                override fun getBody(): ByteArray {
+                    return requestBody.toByteArray(Charset.defaultCharset())
+                }
+            }
+        queue.add(stringReq)
+    }
+
+    private fun updatePreference(update: Int) {
+        communicationServer = true
+        val queue = Volley.newRequestQueue(this)
+        var url = globalVars.globalAPILink+"recommendation.php"
+        var userID = globalVars.globalUserID
+        val requestBody = "restaurant_name=$suggestionName&userID=$userID&update=$update"
+        val stringReq : StringRequest =
+            object : StringRequest(
+                Method.POST, url,
+                Response.Listener { response ->
+                    var arrayResponse = response.replace("\"","").split(",", ": ")
+                    if (arrayResponse[1] == "failed") {
+                        Toast.makeText(this, arrayResponse[3], Toast.LENGTH_SHORT).show()
+                    } else {
+                        ttsCodeInfo = -1
+                        tts!!.speak("おすすめのレストランが更新されました", TextToSpeech.QUEUE_FLUSH, null,"")
                     }
                     communicationServer = false
                 },

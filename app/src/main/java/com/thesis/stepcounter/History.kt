@@ -52,6 +52,7 @@ class History : AppCompatActivity(),TextToSpeech.OnInitListener {
                 if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
                     Log.e("TTS", "The Language specified is not supported!")
                 }
+                tts!!.setSpeechRate(1.5f)
 
                 tts!!.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
                     override fun onDone(utteranceId: String) {}

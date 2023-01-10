@@ -83,6 +83,7 @@ class Menu : AppCompatActivity(),TextToSpeech.OnInitListener {
             if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
                 Log.e("TTS","The Language specified is not supported!")
             }
+            tts!!.setSpeechRate(1.5f)
 
             tts!!.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
                 override fun onDone(utteranceId: String) {
@@ -336,13 +337,17 @@ class Menu : AppCompatActivity(),TextToSpeech.OnInitListener {
                     Toast.makeText(this, resp, Toast.LENGTH_SHORT).show()
                     waitingResponse = false
                     var rating = 1
-                    if ((resp == "嫌い") or (resp == "dislike")) {
+                    if ((resp.contains("嫌い", ignoreCase = true)) or
+                        (resp.contains("dislike", ignoreCase = true))) {
                         rating = 3
-                    } else if ((resp == "普通") or (resp == "normal")) {
+                    } else if ((resp.contains("普通", ignoreCase = true)) or
+                        (resp.contains("normal", ignoreCase = true))) {
                         rating = 5
-                    } else if ((resp == "好き") or (resp == "like")) {
+                    } else if ((resp.contains("好き", ignoreCase = true)) or
+                        (resp.contains("like", ignoreCase = true))) {
                         rating = 7
-                    } else if ((resp == "大好き") or (resp == "love")) {
+                    } else if ((resp.contains("大好き", ignoreCase = true)) or
+                        (resp.contains("love", ignoreCase = true))) {
                         rating = 9
                     }
                     pushRating(rating)
