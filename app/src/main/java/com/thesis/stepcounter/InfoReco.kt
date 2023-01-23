@@ -461,7 +461,6 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
             }
         queue.add(stringReq)
     }
-
     //      *********** USELESS ***********
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
