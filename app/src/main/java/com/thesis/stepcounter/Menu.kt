@@ -336,19 +336,22 @@ class Menu : AppCompatActivity(),TextToSpeech.OnInitListener {
                 if (resp in acceptedResp) {
                     Toast.makeText(this, resp, Toast.LENGTH_SHORT).show()
                     waitingResponse = false
-                    var rating = 1
-                    if ((resp.contains("嫌い", ignoreCase = true)) or
+                    var rating = 0
+                    if ((resp.contains("大嫌い", ignoreCase = true)) or
+                        (resp.contains("hate", ignoreCase = true))) {
+                        rating = 1
+                    } else if ((resp.contains("嫌い", ignoreCase = true)) or
                         (resp.contains("dislike", ignoreCase = true))) {
                         rating = 3
                     } else if ((resp.contains("普通", ignoreCase = true)) or
                         (resp.contains("normal", ignoreCase = true))) {
                         rating = 5
-                    } else if ((resp.contains("好き", ignoreCase = true)) or
-                        (resp.contains("like", ignoreCase = true))) {
-                        rating = 7
                     } else if ((resp.contains("大好き", ignoreCase = true)) or
                         (resp.contains("love", ignoreCase = true))) {
                         rating = 9
+                    } else if ((resp.contains("好き", ignoreCase = true)) or
+                        (resp.contains("like", ignoreCase = true))) {
+                        rating = 7
                     }
                     pushRating(rating)
                 } else {
