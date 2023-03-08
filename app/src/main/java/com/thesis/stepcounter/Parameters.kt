@@ -5,9 +5,16 @@ import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.util.Log
+import android.view.View
 import android.widget.Button
+import android.widget.EditText
 import android.widget.Switch
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.android.volley.Response
+import com.android.volley.toolbox.StringRequest
+import com.android.volley.toolbox.Volley
+import java.nio.charset.Charset
 import java.util.*
 
 class Parameters : AppCompatActivity(),TextToSpeech.OnInitListener {
@@ -15,6 +22,8 @@ class Parameters : AppCompatActivity(),TextToSpeech.OnInitListener {
     lateinit var menuButton: Button
     lateinit var switchButton: Switch
     lateinit var likedRecoButton: Button
+    lateinit var stepButton: Button
+    lateinit var stepInput: EditText
 
     //get value of global var
     private var globalVars = GlobalVariables.Companion
@@ -116,5 +125,73 @@ class Parameters : AppCompatActivity(),TextToSpeech.OnInitListener {
             }
         }
 
+
+        stepInput = findViewById(R.id.inputStepLength)
+
+        getStepsLength()
+
+        stepButton = findViewById(R.id.buttonStepLength)
+
+        stepButton.setOnClickListener{
+            setASL()
+        }
     }
+
+    private fun setASL() {
+        val queue = Volley.newRequestQueue(this)
+        var url = globalVars.globalAPILink+"setASL.php"
+        var userID = globalVars.globalUserID
+        var asl = stepInput.text
+        val requestBody = "userID=$userID&asl=$asl"
+        val stringReq : StringRequest =
+            object : StringRequest(
+                Method.POST, url,
+                Response.Listener { response ->
+                    // response
+                    var strResp = response.replace("\"","").replace("}","").split(",",": ")
+                    Log.e("Test1",strResp.toString())
+                    if ("success" !in strResp) {
+                        Toast.makeText(this, strResp[3], Toast.LENGTH_SHORT).show()
+                    }
+                },
+                Response.ErrorListener { error ->
+                    var strError = error.toString()
+                    Toast.makeText(this, strError, Toast.LENGTH_SHORT).show()
+                }
+            ){
+                override fun getBody(): ByteArray {
+                    return requestBody.toByteArray(Charset.defaultCharset())
+                }
+            }
+        queue.add(stringReq)
+    }
+    private fun getStepsLength() {
+        val queue = Volley.newRequestQueue(this)
+        var url = globalVars.globalAPILink+"getASL.php"
+        var userID = globalVars.globalUserID
+        val requestBody = "userID=$userID"
+        val stringReq : StringRequest =
+            object : StringRequest(
+                Method.POST, url,
+                Response.Listener { response ->
+                    // response
+                    var strResp = response.replace("\"","").replace("}","").split(",",": ")
+                    Log.e("Test1",strResp.toString())
+                    if ("success" in strResp) {
+                        strResp[3].trim()
+                        stepInput.setText(strResp[3])
+                    }
+                },
+                Response.ErrorListener { error ->
+                    var strError = error.toString()
+                    Toast.makeText(this, strError, Toast.LENGTH_SHORT).show()
+                }
+            ){
+                override fun getBody(): ByteArray {
+                    return requestBody.toByteArray(Charset.defaultCharset())
+                }
+            }
+        queue.add(stringReq)
+    }
+
 }

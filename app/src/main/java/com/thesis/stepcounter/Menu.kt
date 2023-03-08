@@ -228,6 +228,7 @@ class Menu : AppCompatActivity(),TextToSpeech.OnInitListener {
                 Response.Listener { response ->
                     // response
                     var food = response.toString()
+                    Log.e("Debuggin", food)
                     if (food != "") {
                         var split_tmp = food.split(":")
                         idFood = split_tmp[0].toInt()
@@ -235,7 +236,7 @@ class Menu : AppCompatActivity(),TextToSpeech.OnInitListener {
                         waitingResponse = true
                         if (globalVars.globalLangAPP == "jp") {
                             tts!!.speak(
-                                food_lg[0] + "は未評価です。あなたはそれを大好き、好き、普通、嫌い、大嫌いか？",
+                                food_lg[0]+"の好みを大好き、好き、普通、嫌い、大嫌いの内のどれかで教えてください。",
                                 TextToSpeech.QUEUE_FLUSH,
                                 null,
                                 ""
@@ -250,17 +251,40 @@ class Menu : AppCompatActivity(),TextToSpeech.OnInitListener {
                         }
 
                     } else {
-                        //Link the infoReco button to his activity
-                        infoRecoButton.setOnClickListener {
-                            val intent = Intent(this, InfoReco::class.java)
-                            startActivity(intent)
-                            finish()
-                        }
+                        updatePredicted();
                     }
                 },
                 Response.ErrorListener { error ->
                     var strError = error.toString()
                     Log.e("Error",strError)
+                    Toast.makeText(this, strError, Toast.LENGTH_SHORT).show()
+                }
+            ){
+                override fun getBody(): ByteArray {
+                    return requestBody.toByteArray(Charset.defaultCharset())
+                }
+            }
+        queue.add(stringReq)
+    }
+
+    private fun updatePredicted() {
+        val queue = Volley.newRequestQueue(this)
+        var url = globalVars.globalAPILink+"recommendationClass.php"
+        var userID = globalVars.globalUserID
+        val requestBody = "userID=$userID"
+        val stringReq : StringRequest =
+            object : StringRequest(
+                Method.POST, url,
+                Response.Listener {
+                    //Link the infoReco button to his activity
+                    infoRecoButton.setOnClickListener {
+                        val intent = Intent(this, InfoReco::class.java)
+                        startActivity(intent)
+                        finish()
+                    }
+                },
+                Response.ErrorListener { error ->
+                    var strError = error.toString()
                     Toast.makeText(this, strError, Toast.LENGTH_SHORT).show()
                 }
             ){
@@ -357,14 +381,14 @@ class Menu : AppCompatActivity(),TextToSpeech.OnInitListener {
                 } else {
                     if (globalVars.globalLangAPP == "jp") {
                         tts!!.speak(
-                            "1から9までの評価を教えてください。",
+                            "大好き、好き、普通、嫌い、大嫌いの内のどれかで教えてください",
                             TextToSpeech.QUEUE_FLUSH,
                             null,
                             ""
                         )
                     } else {
                         tts!!.speak(
-                            "Please tell me a rating from 1 to 9.",
+                            "Please tell me a rating from hate, dislike, normal, like or love.",
                             TextToSpeech.QUEUE_FLUSH,
                             null,
                             ""

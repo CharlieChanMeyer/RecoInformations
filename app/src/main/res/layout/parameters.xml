@@ -9,7 +9,7 @@
         android:id="@+id/paramReturnMenuButton"
         android:layout_width="159dp"
         android:layout_height="48dp"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="48dp"
         android:text="Menu"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -19,7 +19,7 @@
         android:id="@+id/langSwitch"
         android:layout_width="225dp"
         android:layout_height="47dp"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="24dp"
         android:text="Language: 日本語/English"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -45,4 +45,35 @@
         android:text="Recommend only liked\nInformations"
         app:layout_constraintEnd_toStartOf="@+id/recoLikedButton"
         app:layout_constraintTop_toBottomOf="@+id/langSwitch" />
+
+    <TextView
+        android:id="@+id/labelSteps"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="44dp"
+        android:layout_marginEnd="32dp"
+        android:text="Step length"
+        app:layout_constraintEnd_toStartOf="@+id/inputStepLength"
+        app:layout_constraintTop_toBottomOf="@+id/recoLike" />
+
+    <EditText
+        android:id="@+id/inputStepLength"
+        android:layout_width="55dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="36dp"
+        android:layout_marginEnd="180dp"
+        android:ems="10"
+        android:inputType="number"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/recoLike" />
+
+    <Button
+        android:id="@+id/buttonStepLength"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="20dp"
+        android:text="Submit"
+        app:layout_constraintStart_toEndOf="@+id/inputStepLength"
+        app:layout_constraintTop_toBottomOf="@+id/recoLikedButton" />
 </androidx.constraintlayout.widget.ConstraintLayout>

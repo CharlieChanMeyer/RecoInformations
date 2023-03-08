@@ -67,6 +67,10 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
     //Local list of restaurants names
     private var listRestaurantName: MutableList<String> = mutableListOf()
 
+    private var asl = 0.1
+
+    private var ifd = 25
+
     private var suggestionName = ""
 
 
@@ -86,6 +90,7 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
 
         reset()
         loadData()
+        getStepsLength()
 
         // Adding a context of SENSOR_SERVICE aas Sensor Manager
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
@@ -259,10 +264,10 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
             val currentSteps = totalSteps.toInt() - previousTotalSteps.toInt()
 
             // It will show the current travelled distance to the user
-            var dCal = currentSteps * 0.10
+            var dCal = currentSteps * asl
             tv_stepsTaken.text = dCal.toString().plus(" m")
 
-            if ((currentSteps % 20 == 0) and (listRestaurantName.size > 0 ) and (!communicationServer)) {
+            if ((currentSteps % ifd == 0) and (listRestaurantName.size > 0 ) and (!communicationServer)) {
                 restaurantName = listRestaurantName.random()
                 var tmpRName = restaurantName.split("|")
                 suggestionName = if (globalVars.globalLangAPP == "jp") tmpRName[0] else tmpRName[1]
@@ -273,9 +278,9 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
                 if (globalVars.globalLiked) {
                     verifyLikedRestaurant()
                 } else {
-                    tv_infoView.text = ("お客様の好みに合わせて、気に入っていただけるお店が見つかったと思います。そのお店の名前は ".plus(suggestionName).plus("。"))
+                    tv_infoView.text = (suggestionName.plus("が見つかりました。"))
                     ttsCodeInfo = 0
-                    tts!!.speak((tv_infoView.text).toString().plus("\nこの提案についてどう思いますか？好きですか？嫌いですか？"), TextToSpeech.QUEUE_FLUSH, null,"")
+                    tts!!.speak((tv_infoView.text).toString().plus("\n好きですか？"), TextToSpeech.QUEUE_FLUSH, null,"")
                 }
             }
         }
@@ -359,7 +364,11 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
                 // Change the response user variable to true
                 outputTV.text = listUserResponse.last()
                 var update = -1
-                if (listUserResponse.last().contains("好き", ignoreCase = true)) update = 1
+                if ((listUserResponse.last().contains("大好き", ignoreCase = true))
+                    or (listUserResponse.last().contains("好き", ignoreCase = true))
+                    or (listUserResponse.last().contains("はい", ignoreCase = true))) {
+                    update = 1
+                }
                 updatePreference(update)
             }
         }
@@ -402,15 +411,15 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
                         var dbData = arrayResponse[5].replace("}","")
                         dbData = dbData.replace("\n","")
                         if (dbData!= "dislike") {
-                            tv_infoView.text = ("お客様の好みに合わせて、気に入っていただけるお店が見つかったと思います。そのお店の名前は ".plus(suggestionName).plus("。"))
+                            tv_infoView.text = (suggestionName.plus("が見つかりました。"))
                             ttsCodeInfo = 0
-                            tts!!.speak((tv_infoView.text).toString().plus("\nこの提案についてどう思いますか？好きですか？嫌いですか？"), TextToSpeech.QUEUE_FLUSH, null,"")
+                            tts!!.speak((tv_infoView.text).toString().plus("\n好きですか？"), TextToSpeech.QUEUE_FLUSH, null,"")
                         }
                     } else {
                         if ("The user didn't rated this restaurant" in arrayResponse[3]) {
-                            tv_infoView.text = ("お客様の好みに合わせて、気に入っていただけるお店が見つかったと思います。そのお店の名前は ".plus(suggestionName).plus("。"))
+                            tv_infoView.text = (suggestionName.plus("が見つかりました。"))
                             ttsCodeInfo = 0
-                            tts!!.speak((tv_infoView.text).toString().plus("\nこの提案についてどう思いますか？好きですか？嫌いですか？"), TextToSpeech.QUEUE_FLUSH, null,"")
+                            tts!!.speak((tv_infoView.text).toString().plus("\n好きですか？"), TextToSpeech.QUEUE_FLUSH, null,"")
                         } else {
                             Toast.makeText(this, arrayResponse[3], Toast.LENGTH_SHORT).show()
                         }
@@ -453,6 +462,37 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
                     var strError = error.toString()
                     Toast.makeText(this, strError, Toast.LENGTH_SHORT).show()
                     communicationServer = false
+                }
+            ){
+                override fun getBody(): ByteArray {
+                    return requestBody.toByteArray(Charset.defaultCharset())
+                }
+            }
+        queue.add(stringReq)
+    }
+
+    private fun getStepsLength() {
+        val queue = Volley.newRequestQueue(this)
+        var url = globalVars.globalAPILink+"getASL.php"
+        var userID = globalVars.globalUserID
+        val requestBody = "userID=$userID"
+        val stringReq : StringRequest =
+            object : StringRequest(
+                Method.POST, url,
+                Response.Listener { response ->
+                    // response
+                    var strResp = response.replace("\"","").replace("}","").split(",",": ")
+                    if ("success" in strResp) {
+                        strResp[3].trim()
+                        asl = strResp[3].toDouble()
+                        Log.d("Debbuging Display", asl.toString())
+                        ifd = (5.0/asl).toInt()
+                        Log.d("Debbuging Display", ifd.toString())
+                    }
+                },
+                Response.ErrorListener { error ->
+                    var strError = error.toString()
+                    Toast.makeText(this, strError, Toast.LENGTH_SHORT).show()
                 }
             ){
                 override fun getBody(): ByteArray {
