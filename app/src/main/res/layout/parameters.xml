@@ -25,55 +25,77 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/paramReturnMenuButton" />
 
-    <Button
-        android:id="@+id/recoLikedButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
-        android:layout_marginEnd="60dp"
-        android:text="ON"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/langSwitch" />
-
     <TextView
         android:id="@+id/recoLike"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="36dp"
-        android:layout_marginEnd="44dp"
+        android:layout_marginStart="72dp"
+        android:layout_marginTop="44dp"
         android:gravity="center"
-        android:text="Recommend only liked\nInformations"
-        app:layout_constraintEnd_toStartOf="@+id/recoLikedButton"
+        android:text="Application Method"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/langSwitch" />
 
     <TextView
         android:id="@+id/labelSteps"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="44dp"
-        android:layout_marginEnd="32dp"
+        android:layout_marginTop="92dp"
+        android:layout_marginEnd="24dp"
         android:text="Step length"
         app:layout_constraintEnd_toStartOf="@+id/inputStepLength"
-        app:layout_constraintTop_toBottomOf="@+id/recoLike" />
-
-    <EditText
-        android:id="@+id/inputStepLength"
-        android:layout_width="55dp"
-        android:layout_height="48dp"
-        android:layout_marginTop="36dp"
-        android:layout_marginEnd="180dp"
-        android:ems="10"
-        android:inputType="number"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/recoLike" />
 
     <Button
         android:id="@+id/buttonStepLength"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="32dp"
-        android:layout_marginTop="20dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="15dp"
         android:text="Submit"
         app:layout_constraintStart_toEndOf="@+id/inputStepLength"
-        app:layout_constraintTop_toBottomOf="@+id/recoLikedButton" />
+        app:layout_constraintTop_toBottomOf="@+id/radioGroup" />
+
+    <EditText
+        android:id="@+id/inputStepLength"
+        android:layout_width="55dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="84dp"
+        android:layout_marginEnd="180dp"
+        android:ems="10"
+        android:inputType="number"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/recoLike" />
+
+    <RadioGroup
+        android:id="@+id/radioGroup"
+        android:layout_width="297dp"
+        android:layout_height="113dp"
+        android:layout_marginStart="52dp"
+        android:layout_marginTop="20dp"
+        android:orientation="vertical"
+        app:layout_constraintStart_toEndOf="@+id/recoLike"
+        app:layout_constraintTop_toBottomOf="@+id/langSwitch">
+
+        <RadioButton
+            android:id="@+id/rbmethod1"
+            android:layout_width="101dp"
+            android:layout_height="35dp"
+            android:onClick="onRadioButtonClicked"
+            android:text="Method 1" />
+
+        <RadioButton
+            android:id="@+id/rbmethod2"
+            android:layout_width="103dp"
+            android:layout_height="35dp"
+            android:onClick="onRadioButtonClicked"
+            android:text="Method 2" />
+
+        <RadioButton
+            android:id="@+id/rbmethod3"
+            android:layout_width="101dp"
+            android:layout_height="35dp"
+            android:onClick="onRadioButtonClicked"
+            android:text="Method 3" />
+    </RadioGroup>
 </androidx.constraintlayout.widget.ConstraintLayout>

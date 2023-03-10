@@ -275,12 +275,12 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
                 Log.e("Size",listRestaurantName.size.toString())
                 listRestaurantName.removeAt(index)
                 Log.e("Size",listRestaurantName.size.toString())
-                if (globalVars.globalLiked) {
+                if (globalVars.globalMethodNumber == 1) {
                     verifyLikedRestaurant()
-                } else {
+                } else if (globalVars.globalMethodNumber == 2){
                     tv_infoView.text = (suggestionName.plus("が見つかりました。"))
-                    ttsCodeInfo = 0
-                    tts!!.speak((tv_infoView.text).toString().plus("\n好きですか？"), TextToSpeech.QUEUE_FLUSH, null,"")
+                    ttsCodeInfo = -1
+                    tts!!.speak((tv_infoView.text).toString(), TextToSpeech.QUEUE_FLUSH, null,"")
                 }
             }
         }

@@ -6,10 +6,7 @@ import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.util.Log
 import android.view.View
-import android.widget.Button
-import android.widget.EditText
-import android.widget.Switch
-import android.widget.Toast
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.android.volley.Response
 import com.android.volley.toolbox.StringRequest
@@ -21,7 +18,9 @@ class Parameters : AppCompatActivity(),TextToSpeech.OnInitListener {
     //create the buttons in the class variable
     lateinit var menuButton: Button
     lateinit var switchButton: Switch
-    lateinit var likedRecoButton: Button
+    lateinit var radioButton1: RadioButton
+    lateinit var radioButton2: RadioButton
+    lateinit var radioButton3: RadioButton
     lateinit var stepButton: Button
     lateinit var stepInput: EditText
 
@@ -92,39 +91,18 @@ class Parameters : AppCompatActivity(),TextToSpeech.OnInitListener {
             finish()
         }
 
-        //Define the reco Liked button
-        likedRecoButton = findViewById(R.id.recoLikedButton)
-        if (globalVars.globalLiked) {
-            if (globalVars.globalLangAPP == "jp") {
-                likedRecoButton.text = globalVars.globalText_jp["on"]
-            } else {
-                likedRecoButton.text = globalVars.globalText_eng["on"]
-            }
-        } else {
-            if (globalVars.globalLangAPP == "jp") {
-                likedRecoButton.text = globalVars.globalText_jp["off"]
-            } else {
-                likedRecoButton.text = globalVars.globalText_eng["off"]
-            }
-        }
-        likedRecoButton.setOnClickListener {
-            if (globalVars.globalLiked) {
-                globalVars.globalLiked = false
-                if (globalVars.globalLangAPP == "jp") {
-                    likedRecoButton.text = globalVars.globalText_jp["off"]
-                } else {
-                    likedRecoButton.text = globalVars.globalText_eng["off"]
-                }
-            } else {
-                globalVars.globalLiked = true
-                if (globalVars.globalLangAPP == "jp") {
-                    likedRecoButton.text = globalVars.globalText_jp["on"]
-                } else {
-                    likedRecoButton.text = globalVars.globalText_eng["on"]
-                }
-            }
-        }
+        //Define the radio checked
+        radioButton1 = findViewById(R.id.rbmethod1)
+        radioButton2 = findViewById(R.id.rbmethod2)
+        radioButton3 = findViewById(R.id.rbmethod3)
 
+        if (globalVars.globalMethodNumber == 1) {
+            radioButton1.isChecked = true
+        } else if (globalVars.globalMethodNumber == 2) {
+            radioButton2.isChecked = true
+        } else {
+            radioButton3.isChecked = true
+        }
 
         stepInput = findViewById(R.id.inputStepLength)
 
@@ -193,5 +171,30 @@ class Parameters : AppCompatActivity(),TextToSpeech.OnInitListener {
             }
         queue.add(stringReq)
     }
+
+    fun onRadioButtonClicked(view: View) {
+        if (view is RadioButton) {
+            // Is the button now checked?
+            val checked = view.isChecked
+
+            // Check which radio button was clicked
+            when (view.getId()) {
+                R.id.rbmethod1 ->
+                    if (checked) {
+                        globalVars.globalMethodNumber = 1
+                    }
+                R.id.rbmethod2 ->
+                    if (checked) {
+                        globalVars.globalMethodNumber = 2
+                    }
+
+                R.id.rbmethod3 ->
+                    if (checked) {
+                        globalVars.globalMethodNumber = 3
+                    }
+            }
+        }
+    }
+
 
 }

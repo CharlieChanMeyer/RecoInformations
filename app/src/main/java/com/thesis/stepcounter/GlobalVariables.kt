@@ -31,8 +31,8 @@ class GlobalVariables : Application() {
         /** API link */
         var globalAPILink = "http://ec2-15-168-13-179.ap-northeast-3.compute.amazonaws.com/thesis-app/"
 
-        /** Recommend only Liked information */
-        var globalLiked = true
+        /** Application Method number */
+        var globalMethodNumber = 1
 
         /** Eng Lang */
         var globalText_eng = mapOf<String,String>(
