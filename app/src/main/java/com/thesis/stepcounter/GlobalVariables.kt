@@ -27,7 +27,7 @@ class GlobalVariables : Application() {
         var globalErrorCode = 0
 
         /** restaurants' list*/
-        var globalRestaurantName = mutableListOf<String>("なか卯|Nakau","くら寿司|Kurasushi","マクドナルド|McDonald")
+        var globalRestaurantName = mutableListOf<String>()
         /** API link */
         var globalAPILink = "http://ec2-15-168-13-179.ap-northeast-3.compute.amazonaws.com/thesis-app/"
 

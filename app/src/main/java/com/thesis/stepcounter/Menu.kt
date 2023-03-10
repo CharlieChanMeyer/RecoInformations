@@ -151,7 +151,15 @@ class Menu : AppCompatActivity(),TextToSpeech.OnInitListener {
             true
         }
 
-        verifyLikedFood()
+        if (globalVars.globalMethodNumber == 2) {
+            infoRecoButton.setOnClickListener {
+                val intent = Intent(this, InfoReco::class.java)
+                startActivity(intent)
+                finish()
+            }
+        } else {
+            verifyLikedFood()
+        }
     }
 
     private fun postVolley(email: String, apiKey: String) {
@@ -228,7 +236,6 @@ class Menu : AppCompatActivity(),TextToSpeech.OnInitListener {
                 Response.Listener { response ->
                     // response
                     var food = response.toString()
-                    Log.e("Debuggin", food)
                     if (food != "") {
                         var split_tmp = food.split(":")
                         idFood = split_tmp[0].toInt()

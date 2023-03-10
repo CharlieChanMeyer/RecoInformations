@@ -408,14 +408,15 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
                 Response.Listener { response ->
                     var arrayResponse = response.replace("\"","").split(",", ": ")
                     if (arrayResponse[1] == "success") {
-                        var dbData = arrayResponse[5].replace("}","")
-                        dbData = dbData.replace("\n","")
-                        if (dbData!= "dislike") {
+                        var dbData = arrayResponse[5]
+                        if (dbData.contains("like")) {
+                            updateLogHistory("like")
                             tv_infoView.text = (suggestionName.plus("が見つかりました。"))
                             ttsCodeInfo = 0
                             tts!!.speak((tv_infoView.text).toString().plus("\n好きですか？"), TextToSpeech.QUEUE_FLUSH, null,"")
                         }
                     } else {
+                        updateLogHistory("dislike")
                         if ("The user didn't rated this restaurant" in arrayResponse[3]) {
                             tv_infoView.text = (suggestionName.plus("が見つかりました。"))
                             ttsCodeInfo = 0
@@ -426,6 +427,29 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
                     }
                     communicationServer = false
                 },
+                Response.ErrorListener { error ->
+                    var strError = error.toString()
+                    Toast.makeText(this, strError, Toast.LENGTH_SHORT).show()
+                    communicationServer = false
+                }
+            ){
+                override fun getBody(): ByteArray {
+                    return requestBody.toByteArray(Charset.defaultCharset())
+                }
+            }
+        queue.add(stringReq)
+    }
+
+    private fun updateLogHistory(rating: String) {
+        communicationServer = true
+        val queue = Volley.newRequestQueue(this)
+        var url = globalVars.globalAPILink+"recordLog.php"
+        var userID = globalVars.globalUserID
+        val requestBody = "restaurant_name=$suggestionName&userID=$userID&rating=$rating"
+        val stringReq : StringRequest =
+            object : StringRequest(
+                Method.POST, url,
+                Response.Listener {},
                 Response.ErrorListener { error ->
                     var strError = error.toString()
                     Toast.makeText(this, strError, Toast.LENGTH_SHORT).show()
