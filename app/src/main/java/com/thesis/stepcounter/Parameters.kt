@@ -57,7 +57,7 @@ class Parameters : AppCompatActivity(),TextToSpeech.OnInitListener {
                 override fun onStart(utteranceId: String) {}
             })
         } else {
-            Log.e("TTS", "Initilization Failed!")
+            Log.e("TTS", "Initialization Failed!")
         }
 
         //Define the menu button

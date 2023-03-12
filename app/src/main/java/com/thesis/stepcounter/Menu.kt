@@ -246,14 +246,14 @@ class Menu : AppCompatActivity(),TextToSpeech.OnInitListener {
                         waitingResponse = true
                         if (globalVars.globalLangAPP == "jp") {
                             tts!!.speak(
-                                food_lg[0]+"の好みを大好き、好き、普通、嫌い、大嫌いの内のどれかで教えてください。",
+                                food_lg[0]+"の好みを1～9で教えてください。",
                                 TextToSpeech.QUEUE_FLUSH,
                                 null,
                                 ""
                             )
                         } else {
                             tts!!.speak(
-                                food_lg[1] + "is unrated. Do you love it, like it, normal, dislike it or hate it?",
+                                food_lg[1] + "is unrated. Please rate it from 1 to 9.",
                                 TextToSpeech.QUEUE_FLUSH,
                                 null,
                                 ""
@@ -295,14 +295,14 @@ class Menu : AppCompatActivity(),TextToSpeech.OnInitListener {
                         waitingResponse = true
                         if (globalVars.globalLangAPP == "jp") {
                             tts!!.speak(
-                                food_lg[0]+"の好みを大好き、好き、普通、嫌い、大嫌いの内のどれかで教えてください。",
+                                food_lg[0]+"の好みを1～9で教えてください。",
                                 TextToSpeech.QUEUE_FLUSH,
                                 null,
                                 ""
                             )
                         } else {
                             tts!!.speak(
-                                food_lg[1] + "is unrated. Do you love it, like it, normal, dislike it or hate it?",
+                                food_lg[1] + "is unrated. Please rate it from 1 to 9.",
                                 TextToSpeech.QUEUE_FLUSH,
                                 null,
                                 ""
@@ -418,26 +418,39 @@ class Menu : AppCompatActivity(),TextToSpeech.OnInitListener {
                 var resp = Objects.requireNonNull(res)[0]
 
                 // List of accepted response
-                var acceptedResp = arrayListOf<String>("大嫌い","嫌い","普通","好き","大好き","hate","dislike","normal","like","love")
+                //var acceptedResp = arrayListOf<String>("大嫌い","嫌い","普通","好き","大好き","hate","dislike","normal","like","love")
+                var acceptedResp = arrayListOf<String>("1","2","3","4","5","6","7","8","9","一","二","三","四","五","六","七","八","九")
 
                 if (resp in acceptedResp) {
                     waitingResponse = false
                     var rating = 0
-                    if ((resp.contains("大嫌い", ignoreCase = true)) or
-                        (resp.contains("hate", ignoreCase = true))) {
+                    if ((resp.contains("1", ignoreCase = true)) or
+                        (resp.contains("一", ignoreCase = true))) {
                         rating = 1
-                    } else if ((resp.contains("嫌い", ignoreCase = true)) or
-                        (resp.contains("dislike", ignoreCase = true))) {
+                    } else if ((resp.contains("2", ignoreCase = true)) or
+                        (resp.contains("二", ignoreCase = true))) {
+                        rating = 2
+                    } else if ((resp.contains("3", ignoreCase = true)) or
+                        (resp.contains("三", ignoreCase = true))) {
                         rating = 3
-                    } else if ((resp.contains("普通", ignoreCase = true)) or
-                        (resp.contains("normal", ignoreCase = true))) {
+                    } else if ((resp.contains("4", ignoreCase = true)) or
+                        (resp.contains("四", ignoreCase = true))) {
+                        rating = 4
+                    } else if ((resp.contains("5", ignoreCase = true)) or
+                        (resp.contains("五", ignoreCase = true))) {
                         rating = 5
-                    } else if ((resp.contains("大好き", ignoreCase = true)) or
-                        (resp.contains("love", ignoreCase = true))) {
-                        rating = 9
-                    } else if ((resp.contains("好き", ignoreCase = true)) or
-                        (resp.contains("like", ignoreCase = true))) {
+                    } else if ((resp.contains("6", ignoreCase = true)) or
+                        (resp.contains("六", ignoreCase = true))) {
+                        rating = 6
+                    } else if ((resp.contains("7", ignoreCase = true)) or
+                        (resp.contains("七", ignoreCase = true))) {
                         rating = 7
+                    } else if ((resp.contains("8", ignoreCase = true)) or
+                        (resp.contains("八", ignoreCase = true))) {
+                        rating = 8
+                    } else if ((resp.contains("9", ignoreCase = true)) or
+                        (resp.contains("九", ignoreCase = true))) {
+                        rating = 9
                     }
                     if (globalVars.globalMethodNumber == 1) {
                         pushRating(rating)
@@ -447,14 +460,14 @@ class Menu : AppCompatActivity(),TextToSpeech.OnInitListener {
                 } else {
                     if (globalVars.globalLangAPP == "jp") {
                         tts!!.speak(
-                            "大好き、好き、普通、嫌い、大嫌いの内のどれかで教えてください",
+                            "1～9で教えてください。",
                             TextToSpeech.QUEUE_FLUSH,
                             null,
                             ""
                         )
                     } else {
                         tts!!.speak(
-                            "Please tell me a rating from hate, dislike, normal, like or love.",
+                            "Please tell us on a scale of 1 to 9.",
                             TextToSpeech.QUEUE_FLUSH,
                             null,
                             ""

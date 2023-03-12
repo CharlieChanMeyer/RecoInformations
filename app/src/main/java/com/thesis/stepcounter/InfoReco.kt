@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package com.thesis.stepcounter
 
 import android.content.Context
@@ -40,9 +42,6 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
 
     private var tts: TextToSpeech? = null
 
-    //Create a variable to stock if the user like the restaurant or not
-    private var restaurantLiked = false
-
     //Verify if the communication with the server is finish
     private var communicationServer = false
 
@@ -74,6 +73,8 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
     private var suggestionName = ""
 
     private var suggestionLiked = ""
+
+    private var nbRestaurantFound = 0
 
 
     //Boolean to know what type of information was given to the user
@@ -111,14 +112,19 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
 
             tts!!.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
                 override fun onDone(utteranceId: String) {
+                    if (globalVars.globalMethodNumber == 2) {
+                        updateLogHistory("null")
+                        communicationServer = false
+                    }
                     userInteraction()
                 }
                 override fun onError(utteranceId: String) {}
                 override fun onStart(utteranceId: String) {}
             })
         } else {
-            Log.e("TTS", "Initilization Failed!")
+            Log.e("TTS", "Initialization Failed!")
         }
+
         outputTV = findViewById(R.id.idTVOutput)
         tv_infoView = findViewById(R.id.tv_informationFound)
         tv_stepsTaken = findViewById(R.id.tv_stepsTaken)
@@ -135,6 +141,7 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
             resetView()
             var intent = Intent(this, Menu::class.java)
             startActivity(intent)
+            finish()
         }
         menuButton.setOnLongClickListener {
             tts!!.speak("メニューに戻るにはここをクリック", TextToSpeech.QUEUE_FLUSH, null,"")
@@ -242,6 +249,7 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
         tv_infoView.text = ("レストランは見つかりませんでした。")
         outputTV.text = ("Output will appear here")
         ttsCodeInfo = -1
+        nbRestaurantFound = 0
         listUserResponse.clear()
         listRestaurantName = globalVars.globalRestaurantName.toMutableList()
         tts!!.speak("", TextToSpeech.QUEUE_FLUSH, null,"")
@@ -268,24 +276,30 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
             // It will show the current travelled distance to the user
             var dCal = currentSteps * asl
             tv_stepsTaken.text = dCal.toString().plus(" m")
-
-            if ((currentSteps % ifd == 0) and (listRestaurantName.size > 0 ) and (!communicationServer)) {
-                restaurantName = listRestaurantName.random()
-                var tmpRName = restaurantName.split("|")
-                suggestionName = if (globalVars.globalLangAPP == "jp") tmpRName[0] else tmpRName[1]
-                var index = listRestaurantName.indexOf(restaurantName)
-                listRestaurantName.removeAt(index)
-                if (globalVars.globalMethodNumber == 1) {
-                    verifyLikedRestaurant()
-                } else if (globalVars.globalMethodNumber == 2){
-                    tv_infoView.text = (suggestionName.plus("が見つかりました。"))
-                    ttsCodeInfo = -1
-                    tts!!.speak((tv_infoView.text).toString(), TextToSpeech.QUEUE_FLUSH, null,"")
-                    updateLogHistory("null")
+            if ((currentSteps % ifd == 0) and (listRestaurantName.size > 0 ) and (!communicationServer) ) {
+                communicationServer = true
+                if (nbRestaurantFound >= globalVars.globalRestaurantRestriction) {
+                    restriction()
                 } else {
-                    verifyLikedRestaurantMethod3()
+                    restaurantName = listRestaurantName.random()
+                    var tmpRName = restaurantName.split("|")
+                    suggestionName = if (globalVars.globalLangAPP == "jp") tmpRName[0] else tmpRName[1]
+                    var index = listRestaurantName.indexOf(restaurantName)
+                    listRestaurantName.removeAt(index)
+                    if (globalVars.globalMethodNumber == 1) {
+                        verifyLikedRestaurant()
+                    } else if (globalVars.globalMethodNumber == 2){
+                        tv_infoView.text = (suggestionName.plus("が見つかりました。"))
+                        ttsCodeInfo = -1
+                        tts!!.speak((tv_infoView.text).toString(), TextToSpeech.QUEUE_FLUSH, null,"")
+                        nbRestaurantFound++
+
+                    } else {
+                        verifyLikedRestaurantMethod3()
+                    }
                 }
             }
+
         }
     }
 
@@ -371,6 +385,11 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
                     or (listUserResponse.last().contains("好き", ignoreCase = true))
                     or (listUserResponse.last().contains("はい", ignoreCase = true))) {
                     update = 1
+                } else if ((listUserResponse.last().contains("わからない", ignoreCase = true))
+                    or (listUserResponse.last().contains("分からない", ignoreCase = true))
+                    or (listUserResponse.last().contains("分かりません", ignoreCase = true))
+                    or (listUserResponse.last().contains("わかりません", ignoreCase = true))) {
+                    update = 0
                 }
                 if ( globalVars.globalMethodNumber == 1) {
                     updatePreference(update)
@@ -422,18 +441,19 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
                             tv_infoView.text = (suggestionName.plus("が見つかりました。"))
                             ttsCodeInfo = 0
                             tts!!.speak((tv_infoView.text).toString().plus("\n好きですか？"), TextToSpeech.QUEUE_FLUSH, null,"")
+                        } else {
+                            suggestionLiked = "dislike"
+                            updateLogHistory(suggestionLiked)
+                            nbRestaurantFound++
+                            Log.d("Debugging","After: $nbRestaurantFound")
                         }
                     } else {
                         suggestionLiked = "dislike"
-                        if ("The user didn't rated this restaurant" in arrayResponse[3]) {
-                            tv_infoView.text = (suggestionName.plus("が見つかりました。"))
-                            ttsCodeInfo = 0
-                            tts!!.speak((tv_infoView.text).toString().plus("\n好きですか？"), TextToSpeech.QUEUE_FLUSH, null,"")
-                        } else {
-                            Toast.makeText(this, arrayResponse[3], Toast.LENGTH_SHORT).show()
-                        }
+                        updateLogHistory(suggestionLiked)
+                        nbRestaurantFound++
+                        Log.d("Debugging","After: $nbRestaurantFound")
                     }
-                    updateLogHistory(suggestionLiked)
+
                     communicationServer = false
                 },
                 Response.ErrorListener { error ->
@@ -470,9 +490,11 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
                             tts!!.speak((tv_infoView.text).toString().plus("\n好きですか？"), TextToSpeech.QUEUE_FLUSH, null,"")
                         } else {
                             suggestionLiked = "dislike"
+                            updateLogHistory(suggestionLiked)
+                            nbRestaurantFound++
+                            Log.d("Debugging","After: $nbRestaurantFound")
                         }
                     }
-                    updateLogHistory(suggestionLiked)
                     communicationServer = false
                 },
                 Response.ErrorListener { error ->
@@ -498,7 +520,9 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
         val stringReq : StringRequest =
             object : StringRequest(
                 Method.POST, url,
-                Response.Listener {},
+                Response.Listener {
+                    suggestionName = ""
+                },
                 Response.ErrorListener { error ->
                     var strError = error.toString()
                     Toast.makeText(this, strError, Toast.LENGTH_SHORT).show()
@@ -523,12 +547,15 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
                 Method.POST, url,
                 Response.Listener { response ->
                     var arrayResponse = response.replace("\"","").split(",", ": ")
-                    if (arrayResponse[1] == "failed") {
+                    if (arrayResponse[0] == "failed") {
                         Toast.makeText(this, arrayResponse[3], Toast.LENGTH_SHORT).show()
                     } else {
                         ttsCodeInfo = -1
                         tts!!.speak("おすすめのレストランが更新されました", TextToSpeech.QUEUE_FLUSH, null,"")
+                        nbRestaurantFound++
+                        Log.d("Debugging","After: $nbRestaurantFound")
                     }
+                    updateLogHistory(suggestionLiked)
                     communicationServer = false
                 },
                 Response.ErrorListener { error ->
@@ -553,15 +580,12 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
         val stringReq : StringRequest =
             object : StringRequest(
                 Method.POST, url,
-                Response.Listener { response ->
-                    var arrayResponse = response.replace("\"","").split(",", ": ")
-                    if (arrayResponse[1] == "failed") {
-                        Toast.makeText(this, arrayResponse[3], Toast.LENGTH_SHORT).show()
-                    } else {
-                        ttsCodeInfo = -1
-                        tts!!.speak("おすすめのレストランが更新されました", TextToSpeech.QUEUE_FLUSH, null,"")
-                    }
+                Response.Listener {
+                    ttsCodeInfo = -1
+                    tts!!.speak("おすすめのレストランが更新されました", TextToSpeech.QUEUE_FLUSH, null,"")
+                    nbRestaurantFound++
                     communicationServer = false
+                    updateLogHistory(suggestionLiked)
                 },
                 Response.ErrorListener { error ->
                     var strError = error.toString()
@@ -604,8 +628,15 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
             }
         queue.add(stringReq)
     }
-    //      *********** USELESS ***********
+    //      *********** Restriction ***********
 
+    private fun restriction() {
+        resetView()
+        var intent = Intent(this, Menu::class.java)
+        startActivity(intent)
+    }
+
+    //      *********** USELESS ***********
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
         // We do not have to write anything in this function for this app
     }

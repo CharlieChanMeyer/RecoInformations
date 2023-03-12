@@ -62,6 +62,8 @@ class GlobalVariables : Application() {
             "on" to "止める",
             "off" to "点ける"
         )
+
+        var globalRestaurantRestriction = 50
     }
 
 }
