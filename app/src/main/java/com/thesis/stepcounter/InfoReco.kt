@@ -73,6 +73,8 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
 
     private var suggestionName = ""
 
+    private var suggestionLiked = ""
+
 
     //Boolean to know what type of information was given to the user
     // -1 : Reset
@@ -272,15 +274,16 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
                 var tmpRName = restaurantName.split("|")
                 suggestionName = if (globalVars.globalLangAPP == "jp") tmpRName[0] else tmpRName[1]
                 var index = listRestaurantName.indexOf(restaurantName)
-                Log.e("Size",listRestaurantName.size.toString())
                 listRestaurantName.removeAt(index)
-                Log.e("Size",listRestaurantName.size.toString())
                 if (globalVars.globalMethodNumber == 1) {
                     verifyLikedRestaurant()
                 } else if (globalVars.globalMethodNumber == 2){
                     tv_infoView.text = (suggestionName.plus("が見つかりました。"))
                     ttsCodeInfo = -1
                     tts!!.speak((tv_infoView.text).toString(), TextToSpeech.QUEUE_FLUSH, null,"")
+                    updateLogHistory("null")
+                } else {
+                    verifyLikedRestaurantMethod3()
                 }
             }
         }
@@ -369,7 +372,11 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
                     or (listUserResponse.last().contains("はい", ignoreCase = true))) {
                     update = 1
                 }
-                updatePreference(update)
+                if ( globalVars.globalMethodNumber == 1) {
+                    updatePreference(update)
+                } else if ( globalVars.globalMethodNumber == 3) {
+                    updatePreferenceMethod3(update)
+                }
             }
         }
     }
@@ -408,15 +415,16 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
                 Response.Listener { response ->
                     var arrayResponse = response.replace("\"","").split(",", ": ")
                     if (arrayResponse[1] == "success") {
-                        var dbData = arrayResponse[5]
-                        if (dbData.contains("like")) {
-                            updateLogHistory("like")
+                        var dbData = arrayResponse[5].replace("}","")
+                        dbData = dbData.replace("\n","")
+                        if (dbData!= "dislike") {
+                            suggestionLiked = "like"
                             tv_infoView.text = (suggestionName.plus("が見つかりました。"))
                             ttsCodeInfo = 0
                             tts!!.speak((tv_infoView.text).toString().plus("\n好きですか？"), TextToSpeech.QUEUE_FLUSH, null,"")
                         }
                     } else {
-                        updateLogHistory("dislike")
+                        suggestionLiked = "dislike"
                         if ("The user didn't rated this restaurant" in arrayResponse[3]) {
                             tv_infoView.text = (suggestionName.plus("が見つかりました。"))
                             ttsCodeInfo = 0
@@ -425,6 +433,46 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
                             Toast.makeText(this, arrayResponse[3], Toast.LENGTH_SHORT).show()
                         }
                     }
+                    updateLogHistory(suggestionLiked)
+                    communicationServer = false
+                },
+                Response.ErrorListener { error ->
+                    var strError = error.toString()
+                    Toast.makeText(this, strError, Toast.LENGTH_SHORT).show()
+                    communicationServer = false
+                }
+            ){
+                override fun getBody(): ByteArray {
+                    return requestBody.toByteArray(Charset.defaultCharset())
+                }
+            }
+        queue.add(stringReq)
+    }
+
+    private fun verifyLikedRestaurantMethod3() {
+        communicationServer = true
+        val queue = Volley.newRequestQueue(this)
+        var url = globalVars.globalAPILink+"verifyLikedRestaurant.php"
+        var userID = globalVars.globalUserID
+        val requestBody = "restaurant_name=$suggestionName&userID=$userID"
+        val stringReq : StringRequest =
+            object : StringRequest(
+                Method.POST, url,
+                Response.Listener { response ->
+                    var arrayResponse = response.replace("\"","").split(",", ": ")
+                    if (arrayResponse[1] == "success") {
+                        var dbData = arrayResponse[5].replace("}","")
+                        dbData = dbData.replace("\n","")
+                        if (dbData != "dislike") {
+                            suggestionLiked = "like"
+                            tv_infoView.text = (suggestionName.plus("が見つかりました。"))
+                            ttsCodeInfo = 0
+                            tts!!.speak((tv_infoView.text).toString().plus("\n好きですか？"), TextToSpeech.QUEUE_FLUSH, null,"")
+                        } else {
+                            suggestionLiked = "dislike"
+                        }
+                    }
+                    updateLogHistory(suggestionLiked)
                     communicationServer = false
                 },
                 Response.ErrorListener { error ->
@@ -445,7 +493,8 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
         val queue = Volley.newRequestQueue(this)
         var url = globalVars.globalAPILink+"recordLog.php"
         var userID = globalVars.globalUserID
-        val requestBody = "restaurant_name=$suggestionName&userID=$userID&rating=$rating"
+        var method = globalVars.globalMethodNumber
+        val requestBody = "restaurant_name=$suggestionName&userID=$userID&rating=$rating&method=$method"
         val stringReq : StringRequest =
             object : StringRequest(
                 Method.POST, url,
@@ -495,6 +544,38 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
         queue.add(stringReq)
     }
 
+    private fun updatePreferenceMethod3(update: Int) {
+        communicationServer = true
+        val queue = Volley.newRequestQueue(this)
+        var url = globalVars.globalAPILink+"updateRating.php"
+        var userID = globalVars.globalUserID
+        val requestBody = "restaurant_name=$suggestionName&userID=$userID&update=$update"
+        val stringReq : StringRequest =
+            object : StringRequest(
+                Method.POST, url,
+                Response.Listener { response ->
+                    var arrayResponse = response.replace("\"","").split(",", ": ")
+                    if (arrayResponse[1] == "failed") {
+                        Toast.makeText(this, arrayResponse[3], Toast.LENGTH_SHORT).show()
+                    } else {
+                        ttsCodeInfo = -1
+                        tts!!.speak("おすすめのレストランが更新されました", TextToSpeech.QUEUE_FLUSH, null,"")
+                    }
+                    communicationServer = false
+                },
+                Response.ErrorListener { error ->
+                    var strError = error.toString()
+                    Toast.makeText(this, strError, Toast.LENGTH_SHORT).show()
+                    communicationServer = false
+                }
+            ){
+                override fun getBody(): ByteArray {
+                    return requestBody.toByteArray(Charset.defaultCharset())
+                }
+            }
+        queue.add(stringReq)
+    }
+
     private fun getStepsLength() {
         val queue = Volley.newRequestQueue(this)
         var url = globalVars.globalAPILink+"getASL.php"
@@ -509,9 +590,7 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
                     if ("success" in strResp) {
                         strResp[3].trim()
                         asl = strResp[3].toDouble()
-                        Log.d("Debbuging Display", asl.toString())
                         ifd = (5.0/asl).toInt()
-                        Log.d("Debbuging Display", ifd.toString())
                     }
                 },
                 Response.ErrorListener { error ->

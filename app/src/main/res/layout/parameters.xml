@@ -82,20 +82,20 @@
             android:layout_width="101dp"
             android:layout_height="35dp"
             android:onClick="onRadioButtonClicked"
-            android:text="Method 1" />
+            android:text="Method A" />
 
         <RadioButton
             android:id="@+id/rbmethod2"
             android:layout_width="103dp"
             android:layout_height="35dp"
             android:onClick="onRadioButtonClicked"
-            android:text="Method 2" />
+            android:text="Method B" />
 
         <RadioButton
             android:id="@+id/rbmethod3"
             android:layout_width="101dp"
             android:layout_height="35dp"
             android:onClick="onRadioButtonClicked"
-            android:text="Method 3" />
+            android:text="Method C" />
     </RadioGroup>
 </androidx.constraintlayout.widget.ConstraintLayout>

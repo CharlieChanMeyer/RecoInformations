@@ -157,8 +157,10 @@ class Menu : AppCompatActivity(),TextToSpeech.OnInitListener {
                 startActivity(intent)
                 finish()
             }
-        } else {
+        } else if (globalVars.globalMethodNumber == 1){
             verifyLikedFood()
+        } else {
+            verifyLikedRestaurant()
         }
     }
 
@@ -173,6 +175,7 @@ class Menu : AppCompatActivity(),TextToSpeech.OnInitListener {
                 Response.Listener { response ->
                     // response
                     var strResp = response.toString()
+                    Log.d("Debugging",strResp)
                     if (strResp == "success") {
                         globalVars.globalUserID = -1
                         globalVars.globalUserEmail = ""
@@ -259,6 +262,59 @@ class Menu : AppCompatActivity(),TextToSpeech.OnInitListener {
 
                     } else {
                         updatePredicted();
+                    }
+                },
+                Response.ErrorListener { error ->
+                    var strError = error.toString()
+                    Log.e("Error",strError)
+                    Toast.makeText(this, strError, Toast.LENGTH_SHORT).show()
+                }
+            ){
+                override fun getBody(): ByteArray {
+                    return requestBody.toByteArray(Charset.defaultCharset())
+                }
+            }
+        queue.add(stringReq)
+    }
+
+    private fun verifyLikedRestaurant() {
+        val queue = Volley.newRequestQueue(this)
+        var url = globalVars.globalAPILink+"verifyRatedRestaurant.php"
+        var userID = globalVars.globalUserID
+        val requestBody = "userID=$userID"
+        val stringReq : StringRequest =
+            object : StringRequest(
+                Method.POST, url,
+                Response.Listener { response ->
+                    // response
+                    var food = response.toString()
+                    if (food != "") {
+                        var split_tmp = food.split(":")
+                        idFood = split_tmp[0].toInt()
+                        var food_lg = split_tmp[1].split("|")
+                        waitingResponse = true
+                        if (globalVars.globalLangAPP == "jp") {
+                            tts!!.speak(
+                                food_lg[0]+"の好みを大好き、好き、普通、嫌い、大嫌いの内のどれかで教えてください。",
+                                TextToSpeech.QUEUE_FLUSH,
+                                null,
+                                ""
+                            )
+                        } else {
+                            tts!!.speak(
+                                food_lg[1] + "is unrated. Do you love it, like it, normal, dislike it or hate it?",
+                                TextToSpeech.QUEUE_FLUSH,
+                                null,
+                                ""
+                            )
+                        }
+
+                    } else {
+                        infoRecoButton.setOnClickListener {
+                            val intent = Intent(this, InfoReco::class.java)
+                            startActivity(intent)
+                            finish()
+                        }
                     }
                 },
                 Response.ErrorListener { error ->
@@ -365,7 +421,6 @@ class Menu : AppCompatActivity(),TextToSpeech.OnInitListener {
                 var acceptedResp = arrayListOf<String>("大嫌い","嫌い","普通","好き","大好き","hate","dislike","normal","like","love")
 
                 if (resp in acceptedResp) {
-                    Toast.makeText(this, resp, Toast.LENGTH_SHORT).show()
                     waitingResponse = false
                     var rating = 0
                     if ((resp.contains("大嫌い", ignoreCase = true)) or
@@ -384,7 +439,11 @@ class Menu : AppCompatActivity(),TextToSpeech.OnInitListener {
                         (resp.contains("like", ignoreCase = true))) {
                         rating = 7
                     }
-                    pushRating(rating)
+                    if (globalVars.globalMethodNumber == 1) {
+                        pushRating(rating)
+                    } else if (globalVars.globalMethodNumber == 3)  {
+                        pushRatingRestaurant(rating)
+                    }
                 } else {
                     if (globalVars.globalLangAPP == "jp") {
                         tts!!.speak(
@@ -419,6 +478,32 @@ class Menu : AppCompatActivity(),TextToSpeech.OnInitListener {
                     // response
                     if (response.toString() == "Success") {
                         verifyLikedFood()
+                    }
+                },
+                Response.ErrorListener { error ->
+                    var strError = error.toString()
+                    Toast.makeText(this, strError, Toast.LENGTH_SHORT).show()
+                }
+            ){
+                override fun getBody(): ByteArray {
+                    return requestBody.toByteArray(Charset.defaultCharset())
+                }
+            }
+        queue.add(stringReq)
+    }
+
+    private fun pushRatingRestaurant(rating: Int) {
+        val queue = Volley.newRequestQueue(this)
+        var url = globalVars.globalAPILink+"pushRatingRestaurant.php"
+        var userID = globalVars.globalUserID
+        val requestBody = "userID=$userID&foodID=$idFood&rating=$rating"
+        val stringReq : StringRequest =
+            object : StringRequest(
+                Method.POST, url,
+                Response.Listener { response ->
+                    // response
+                    if (response.toString() == "Success") {
+                        verifyLikedRestaurant()
                     }
                 },
                 Response.ErrorListener { error ->
