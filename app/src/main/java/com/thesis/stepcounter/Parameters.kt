@@ -23,6 +23,8 @@ class Parameters : AppCompatActivity(),TextToSpeech.OnInitListener {
     lateinit var radioButton3: RadioButton
     lateinit var stepButton: Button
     lateinit var stepInput: EditText
+    lateinit var speechInput: EditText
+    lateinit var speechButton: Button
 
     //get value of global var
     private var globalVars = GlobalVariables.Companion
@@ -47,7 +49,7 @@ class Parameters : AppCompatActivity(),TextToSpeech.OnInitListener {
             if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
                 Log.e("TTS", "The Language specified is not supported!")
             }
-            tts!!.setSpeechRate(1.5f)
+            tts!!.setSpeechRate(globalVars.globalSpeechSpeed)
 
             tts!!.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
                 override fun onDone(utteranceId: String) {}
@@ -112,6 +114,17 @@ class Parameters : AppCompatActivity(),TextToSpeech.OnInitListener {
 
         stepButton.setOnClickListener{
             setASL()
+        }
+
+        speechInput = findViewById(R.id.inputSpeechSpeed)
+
+        speechButton = findViewById(R.id.buttonSpeechSpeed)
+
+        speechInput.setText(globalVars.globalSpeechSpeed.toString())
+
+        speechButton.setOnClickListener{
+            globalVars.globalSpeechSpeed = speechInput.text.toString().toFloat()
+            Log.e("Test",speechInput.text.toString())
         }
     }
 

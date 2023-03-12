@@ -34,6 +34,9 @@ class GlobalVariables : Application() {
         /** Application Method number */
         var globalMethodNumber = 1
 
+        /** Application Speech Speed */
+        var globalSpeechSpeed = 1.5f
+
         /** Eng Lang */
         var globalText_eng = mapOf<String,String>(
             "menu" to "MENU",
