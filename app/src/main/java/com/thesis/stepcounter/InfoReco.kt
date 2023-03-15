@@ -586,7 +586,7 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
         queue.add(stringReq)
     }
 
-    private fun 0(update: Int) {
+    private fun updatePreference(update: Int) {
         communicationServer = true
         val queue = Volley.newRequestQueue(this)
         var url = globalVars.globalAPILink+"recommendation.php"
