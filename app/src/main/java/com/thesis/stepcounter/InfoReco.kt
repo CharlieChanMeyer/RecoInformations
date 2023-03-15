@@ -75,9 +75,14 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
 
     private var suggestionName = ""
 
+    private var restaurantName = ""
+
     private var suggestionLiked = ""
 
     private var nbRestaurantFound = 0
+
+    //Local list of restaurants names
+    private var listRestaurantFound: MutableList<String> = mutableListOf()
 
     lateinit var tg: ToneGenerator
 
@@ -122,6 +127,9 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
                     if (globalVars.globalMethodNumber == 2) {
                         updateLogHistory("null")
                         communicationServer = false
+                        listRestaurantFound.add(restaurantName)
+                        Log.d("DEBUGGING SIZE",listRestaurantFound.size.toString())
+                        restaurantName = ""
                     }
                     userInteraction()
                 }
@@ -133,6 +141,10 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
         }
 
         outputTV = findViewById(R.id.idTVOutput)
+
+        outputTV.setOnClickListener{
+            userInteraction()
+        }
         tv_infoView = findViewById(R.id.tv_informationFound)
         tv_stepsTaken = findViewById(R.id.tv_stepsTaken)
 
@@ -258,6 +270,9 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
         ttsCodeInfo = -1
         nbRestaurantFound = 0
         listUserResponse.clear()
+        restaurantName = ""
+        suggestionName = ""
+        listRestaurantFound.clear()
         listRestaurantName = globalVars.globalRestaurantName.toMutableList()
         tts!!.speak("", TextToSpeech.QUEUE_FLUSH, null,"")
 
@@ -269,10 +284,6 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
 
     override fun onSensorChanged(event: SensorEvent?) {
 
-        // Calling the TextView that we made in activity_main.xml
-        // by the id given to that TextView
-        var restaurantName = ""
-
         if (running) {
             totalSteps = event!!.values[0]
 
@@ -283,28 +294,47 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
             // It will show the current travelled distance to the user
             var dCal = currentSteps * asl
             tv_stepsTaken.text = dCal.toString().plus(" m")
-            if ((currentSteps % ifd == 0) and (listRestaurantName.size > 0 ) and (!communicationServer) ) {
+            if ((currentSteps % ifd == 0) and (listRestaurantName.size > 0 ) and (!communicationServer) and (restaurantName == "")) {
                 communicationServer = true
+                Log.d("Count Step","Entered step 1")
+                Log.d("SIZE restaurant list",listRestaurantName.size.toString())
                 if (nbRestaurantFound >= globalVars.globalRestaurantRestriction) {
                     restriction()
                 } else {
+                    Log.d("Count Step","Entered step 2")
                     restaurantName = listRestaurantName.random()
-                    var tmpRName = restaurantName.split("|")
-                    suggestionName = if (globalVars.globalLangAPP == "jp") tmpRName[0] else tmpRName[1]
-                    var index = listRestaurantName.indexOf(restaurantName)
-                    listRestaurantName.removeAt(index)
-                    if (globalVars.globalMethodNumber == 1) {
-                        verifyLikedRestaurant()
-                    } else if (globalVars.globalMethodNumber == 2){
-                        tg.startTone(ToneGenerator.TONE_PROP_BEEP, 200)
-                        tv_infoView.text = (suggestionName.plus("が見つかりました。"))
-                        ttsCodeInfo = -1
-                        tts!!.speak((tv_infoView.text).toString(), TextToSpeech.QUEUE_FLUSH, null,"")
-                        Log.d("Debugging","Method 2 Before: $nbRestaurantFound")
-                        nbRestaurantFound++
-                        Log.d("Debugging","Method 2 After: $nbRestaurantFound")
+                    Log.d("Step 2",(!listRestaurantFound.contains(restaurantName)).toString())
+                    Log.d("Step 2",suggestionName)
+                    while (listRestaurantFound.contains(restaurantName)) {
+                        var index = listRestaurantName.indexOf(restaurantName)
+                        listRestaurantName.removeAt(index)
+                        restaurantName = listRestaurantName.random()
+                    }
+                    if (!listRestaurantFound.contains(restaurantName) and (suggestionName == "")) {
+                        Log.d("Count Step","Entered step 3")
+                        var tmpRName = restaurantName.split("|")
+                        suggestionName = if (globalVars.globalLangAPP == "jp") tmpRName[0] else tmpRName[1]
+                        var index = listRestaurantName.indexOf(restaurantName)
+                        listRestaurantName.removeAt(index)
+                        if (globalVars.globalMethodNumber == 1) {
+                            verifyLikedRestaurant()
+                        } else if (globalVars.globalMethodNumber == 2){
+                            tg.startTone(ToneGenerator.TONE_PROP_BEEP, 200)
+                            tv_infoView.text = (suggestionName.plus("が見つかりました。"))
+                            ttsCodeInfo = -1
+                            tts!!.speak((tv_infoView.text).toString(), TextToSpeech.QUEUE_FLUSH, null,"")
+                            Log.d("Debugging","Method 2 Before: $nbRestaurantFound")
+                            nbRestaurantFound++
+                            Log.d("Debugging","Method 2 After: $nbRestaurantFound")
+                        } else {
+                            verifyLikedRestaurantMethod3()
+                        }
                     } else {
-                        verifyLikedRestaurantMethod3()
+                        Log.d("Step 2 Else","Problem")
+                        var index = listRestaurantName.indexOf(restaurantName)
+                        listRestaurantName.removeAt(index)
+                        communicationServer = false
+                        restaurantName = ""
                     }
                 }
             }
@@ -321,8 +351,6 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
             while (!response) {
                 response = waitForResponse()
             }
-
-            outputTV.text = listUserResponse.last()
 
             ttsCodeInfo = -1
         }
@@ -404,6 +432,7 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
                     or (listUserResponse.last().contains("知らない", ignoreCase = true))) {
                     update = 0
                 }
+                outputTV.text = listUserResponse.last()
                 if ( globalVars.globalMethodNumber == 1) {
                     updatePreference(update)
                 } else if ( globalVars.globalMethodNumber == 3) {
@@ -430,7 +459,7 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
 
     /** Check if this device has a camera */
     private fun checkCameraHardware(context: Context): Boolean {
-        return(context.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY))
+        return(context.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA))
     }
 
     //      *********** DATABASE INTERACTION ***********
@@ -459,14 +488,17 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
                         } else {
                             suggestionLiked = "dislike"
                             updateLogHistory(suggestionLiked)
+                            listRestaurantFound.add(restaurantName)
+                            Log.d("DEBUGGING SIZE",listRestaurantFound.size.toString())
+                            restaurantName = ""
                         }
                     } else {
                         suggestionLiked = "dislike"
                         updateLogHistory(suggestionLiked)
+                        listRestaurantFound.add(restaurantName)
+                        Log.d("DEBUGGING SIZE",listRestaurantFound.size.toString())
+                        restaurantName = ""
                     }
-                    Log.d("Debugging","Method 1 Before: $nbRestaurantFound")
-                    nbRestaurantFound++
-                    Log.d("Debugging","Method 1After: $nbRestaurantFound")
                     communicationServer = false
                 },
                 Response.ErrorListener { error ->
@@ -537,6 +569,9 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
                 Method.POST, url,
                 Response.Listener {
                     suggestionName = ""
+                    listRestaurantFound.add(restaurantName)
+                    Log.d("DEBUGGING SIZE",listRestaurantFound.size.toString())
+                    restaurantName = ""
                 },
                 Response.ErrorListener { error ->
                     var strError = error.toString()
@@ -551,7 +586,7 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
         queue.add(stringReq)
     }
 
-    private fun updatePreference(update: Int) {
+    private fun 0(update: Int) {
         communicationServer = true
         val queue = Volley.newRequestQueue(this)
         var url = globalVars.globalAPILink+"recommendation.php"
@@ -562,7 +597,7 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
                 Method.POST, url,
                 Response.Listener { response ->
                     var arrayResponse = response.replace("\"","").split(",", ": ")
-                    Log.e("DEBUGGING",arrayResponse.toString())
+                    Log.e("DEBUGGING update Preference response",arrayResponse.toString())
                     if (arrayResponse[0] == "failed") {
                         Toast.makeText(this, arrayResponse[3], Toast.LENGTH_SHORT).show()
                         Log.e("Erreur Update",arrayResponse[3])
@@ -605,6 +640,9 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
 
                     communicationServer = false
                     updateLogHistory(suggestionLiked)
+                    listRestaurantFound.add(restaurantName)
+                    Log.d("DEBUGGING SIZE",listRestaurantFound.size.toString())
+                    restaurantName = ""
                 },
                 Response.ErrorListener { error ->
                     var strError = error.toString()
@@ -653,17 +691,17 @@ class InfoReco : AppCompatActivity(), SensorEventListener,TextToSpeech.OnInitLis
 
     private fun restriction() {
         ttsCodeInfo = -1
-        Log.d("Debugging","ENDED")
-        Log.d("Debugging","ENDED")
-        Log.d("Debugging","ENDED")
-        Log.d("Debugging","ENDED")
-        Log.d("Debugging","ENDED")
-        Log.d("Debugging","ENDED")
-        Log.d("Debugging","ENDED")
-        Log.d("Debugging","ENDED")
-        Log.d("Debugging","ENDED")
-        Log.d("Debugging","ENDED")
-        Log.d("Debugging","ENDED")
+        Log.d("ENDED","ENDED")
+        Log.d("ENDED","ENDED")
+        Log.d("ENDED","ENDED")
+        Log.d("ENDED","ENDED")
+        Log.d("ENDED","ENDED")
+        Log.d("ENDED","ENDED")
+        Log.d("ENDED","ENDED")
+        Log.d("ENDED","ENDED")
+        Log.d("ENDED","ENDED")
+        Log.d("ENDED","ENDED")
+        Log.d("ENDED","ENDED")
         tts!!.speak("これでこの手法の体験は終わりです。お疲れ様でした", TextToSpeech.QUEUE_FLUSH, null,"")
     }
 
